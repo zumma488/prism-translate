@@ -1,0 +1,223 @@
+import React, { useState, useEffect } from 'react';
+import Header from './components/Header';
+import SettingsModal from './components/SettingsModal';
+import TranslationCard from './components/TranslationCard';
+import TranslationInput from './components/TranslationInput';
+import { translateText } from './services/llmService';
+import { LANGUAGE_CONFIGS, DEFAULT_LANGUAGES } from './constants';
+import { AppSettings, TranslationResult, AppStatus, ProviderConfig } from './types';
+
+const EMPTY_INITIAL_SETTINGS: AppSettings = {
+  activeModelKey: '',
+  providers: []
+};
+
+const App: React.FC = () => {
+  // Application State
+  const [inputText, setInputText] = useState('');
+  const [translations, setTranslations] = useState<TranslationResult[]>([]);
+  const [status, setStatus] = useState<AppStatus>(AppStatus.IDLE);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+
+  // Target Languages State (Persisted)
+  const [targetLanguages, setTargetLanguages] = useState<string[]>(() => {
+    const saved = localStorage.getItem('ai-translator-target-languages');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        // Validate it's an array with at least one language
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed;
+        }
+      } catch (e) {
+        console.error("Failed to parse target languages", e);
+      }
+    }
+    return DEFAULT_LANGUAGES;
+  });
+
+  // Settings State (Persisted)
+  const [settings, setSettings] = useState<AppSettings>(() => {
+    const saved = localStorage.getItem('ai-translator-settings-v2');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch (e) {
+        console.error("Failed to parse settings", e);
+      }
+    }
+    return EMPTY_INITIAL_SETTINGS;
+  });
+
+  // Persist settings
+  useEffect(() => {
+    localStorage.setItem('ai-translator-settings-v2', JSON.stringify(settings));
+  }, [settings]);
+
+  // Persist target languages
+  useEffect(() => {
+    localStorage.setItem('ai-translator-target-languages', JSON.stringify(targetLanguages));
+  }, [targetLanguages]);
+
+  // Use a derived list of enabled models for the dropdown
+  const getEnabledModels = () => {
+    const allModels: { provider: ProviderConfig, modelId: string, modelName: string, uniqueId: string }[] = [];
+    settings.providers.forEach(p => {
+      p.models.forEach(m => {
+        if (m.enabled !== false) {
+          allModels.push({
+            provider: p,
+            modelId: m.id,
+            modelName: m.name,
+            uniqueId: `${p.id}:${m.id}`
+          });
+        }
+      });
+    });
+    return allModels;
+  };
+
+  const activeModelMeta = () => {
+    const all = getEnabledModels();
+    return all.find(m => m.uniqueId === settings.activeModelKey) || all[0];
+  };
+
+  const handleTranslate = async () => {
+    if (!inputText.trim()) return;
+
+    const currentMeta = activeModelMeta();
+    if (!currentMeta) {
+      setIsSettingsOpen(true);
+      return;
+    }
+
+    setStatus(AppStatus.LOADING);
+    setTranslations([]); // Clear previous
+
+    try {
+      const results = await translateText({
+        text: inputText,
+        targetLanguages,
+        provider: currentMeta.provider,
+        modelId: currentMeta.modelId
+      });
+      setTranslations(results);
+      setStatus(AppStatus.SUCCESS);
+    } catch (error) {
+      console.error(error);
+      setStatus(AppStatus.ERROR);
+      alert(`Translation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  };
+
+  const getLanguageConfig = (langName: string, langCode: string) => {
+    if (LANGUAGE_CONFIGS[langName]) return LANGUAGE_CONFIGS[langName];
+    const found = Object.values(LANGUAGE_CONFIGS).find(c => c.code === langCode);
+    if (found) return found;
+    return {
+      name: langName,
+      code: langCode,
+      color: '#64748b',
+      bgColor: '#f1f5f9',
+      borderColor: '#e2e8f0',
+    };
+  };
+
+  const handleSettingsSave = (newSettings: AppSettings) => {
+    setSettings(newSettings);
+    // Don't close setup immediately if no models? No, assume user knows.
+    // Ensure active model is valid
+    const all = [];
+    newSettings.providers.forEach(p => p.models.forEach(m => {
+      if (m.enabled !== false) all.push(`${p.id}:${m.id}`);
+    }));
+
+    if (!all.includes(newSettings.activeModelKey) && all.length > 0) {
+      setSettings(s => ({ ...s, activeModelKey: all[0] }));
+    }
+  };
+
+  const handleModelSelect = (uniqueId: string) => {
+    setSettings(prev => ({ ...prev, activeModelKey: uniqueId }));
+  };
+
+  const enabledModels = getEnabledModels();
+  const currentModel = activeModelMeta();
+
+  return (
+    <div className="flex flex-col h-screen overflow-hidden">
+      <Header
+        enabledModels={enabledModels}
+        currentModel={currentModel}
+        activeModelKey={settings.activeModelKey}
+        onModelSelect={handleModelSelect}
+        onOpenSettings={() => setIsSettingsOpen(true)}
+      />
+
+      {/* Main Content */}
+      <main className="flex-1 overflow-hidden relative w-full max-w-[1800px] mx-auto">
+        <div className="flex flex-col md:flex-row h-full">
+
+          {/* LEFT: Input Area */}
+          <TranslationInput
+            inputText={inputText}
+            onInputChange={setInputText}
+            targetLanguages={targetLanguages}
+            onLanguagesChange={setTargetLanguages}
+            onTranslate={handleTranslate}
+            status={status}
+          />
+
+          {/* RIGHT: Output Area */}
+          <div className="flex flex-col w-full md:w-1/2 h-full bg-background p-6 md:pl-4 overflow-y-auto">
+            <div className="flex flex-col gap-4 pb-20">
+
+              {status === AppStatus.IDLE && translations.length === 0 && (
+                <div className="flex flex-col items-center justify-center h-64 text-muted-foreground">
+                  <div className="size-16 rounded-full bg-muted flex items-center justify-center mb-4">
+                    <span className="material-symbols-outlined text-3xl">translate</span>
+                  </div>
+                  <p className="text-sm font-medium">Translations will appear here</p>
+                  <p className="text-xs text-muted-foreground/70 mt-1">Enter text and click Translate to get started</p>
+                </div>
+              )}
+
+              {translations.map((result, idx) => (
+                <TranslationCard
+                  key={idx}
+                  data={result}
+                  config={getLanguageConfig(result.language, result.code)}
+                  totalLanguages={translations.length}
+                />
+              ))}
+
+
+
+              {/* Placeholder skeletons while loading */}
+              {status === AppStatus.LOADING && (
+                <>
+                  {[1, 2, 3].map(i => (
+                    <div key={i} className="bg-card rounded-xl p-5 border border-border animate-pulse">
+                      <div className="h-4 w-20 bg-muted rounded mb-3"></div>
+                      <div className="h-5 w-3/4 bg-muted rounded mb-2"></div>
+                      <div className="h-5 w-1/2 bg-muted rounded"></div>
+                    </div>
+                  ))}
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      </main>
+
+      <SettingsModal
+        isOpen={isSettingsOpen}
+        onClose={() => setIsSettingsOpen(false)}
+        currentSettings={settings}
+        onSave={handleSettingsSave}
+      />
+    </div>
+  );
+};
+
+export default App;

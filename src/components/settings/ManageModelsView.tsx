@@ -1,0 +1,147 @@
+import React, { useState } from 'react';
+import { AppSettings, ProviderConfig } from '../../types';
+import { Button } from '@/components/ui/button';
+import { Switch } from '@/components/ui/switch';
+import { Input } from '@/components/ui/input';
+
+interface ManageModelsViewProps {
+    settings: AppSettings;
+    onUpdateSettings: (settings: AppSettings) => void;
+    onEditProvider: (providerId: string) => void;
+    onDeleteProvider: (providerId: string) => void;
+    onConnectProvider: () => void;
+}
+
+const ManageModelsView: React.FC<ManageModelsViewProps> = ({
+    settings,
+    onUpdateSettings,
+    onEditProvider,
+    onDeleteProvider,
+    onConnectProvider
+}) => {
+    const [searchQuery, setSearchQuery] = useState('');
+
+    const toggleModel = (providerId: string, modelId: string, enabled: boolean) => {
+        const newProviders = settings.providers.map(p => {
+            if (p.id !== providerId) return p;
+            return {
+                ...p,
+                models: p.models.map(m => {
+                    if (m.id !== modelId) return m;
+                    return { ...m, enabled };
+                })
+            };
+        });
+        onUpdateSettings({ ...settings, providers: newProviders });
+    };
+
+    const filteredProviders = settings.providers.map(provider => {
+        const matchesProvider = provider.name.toLowerCase().includes(searchQuery.toLowerCase());
+        const matchedModels = provider.models.filter(m =>
+            m.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            m.id.toLowerCase().includes(searchQuery.toLowerCase())
+        );
+
+        if (matchesProvider) return provider;
+
+        if (matchedModels.length > 0) {
+            return { ...provider, models: matchedModels };
+        }
+
+        return null;
+    }).filter(Boolean) as ProviderConfig[];
+
+    return (
+        <div className="flex flex-col h-full bg-background">
+            {/* Header */}
+            <div className="flex items-center justify-between pl-6 pr-14 py-4 border-b border-border">
+                <div>
+                    <h2 className="text-xl font-bold text-foreground tracking-tight">Manage Models</h2>
+                    <p className="text-sm text-muted-foreground mt-1">
+                        Models shown in the custom picker.
+                    </p>
+                </div>
+            </div>
+
+            {/* Search */}
+            <div className="px-6 py-4 flex gap-3">
+                <div className="relative flex-1">
+                    <Input
+                        type="text"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        placeholder="Search models..."
+                        className="pl-10"
+                    />
+                    <span className="material-symbols-outlined absolute left-3 top-2.5 text-muted-foreground text-[18px]">search</span>
+                </div>
+                <Button
+                    onClick={onConnectProvider}
+                    variant="outline"
+                    size="sm"
+                    className="shrink-0"
+                >
+                    <span className="material-symbols-outlined text-[18px]">add</span>
+                    Connect Provider
+                </Button>
+            </div>
+
+            {/* List */}
+            <div className="flex-1 overflow-y-auto px-6 pb-6 space-y-6">
+                {filteredProviders.map(provider => (
+                    <div key={provider.id}>
+                        <div className="flex items-center justify-between group mb-2">
+                            <h3 className="text-sm font-bold text-foreground">
+                                {provider.name}
+                            </h3>
+                            <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={() => onEditProvider(provider.id)}
+                                    className="size-7 hover:bg-muted"
+                                    title="Edit Provider"
+                                >
+                                    <span className="material-symbols-outlined text-[16px]">edit</span>
+                                </Button>
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={() => onDeleteProvider(provider.id)}
+                                    className="size-7 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                                    title="Delete Provider"
+                                >
+                                    <span className="material-symbols-outlined text-[16px]">delete</span>
+                                </Button>
+                            </div>
+                        </div>
+
+                        <div className="space-y-1">
+                            {provider.models.map(model => (
+                                <div key={model.id} className="flex items-center justify-between py-2 pl-2 pr-2 hover:bg-accent rounded-lg group/item">
+                                    <span className="text-sm text-foreground">{model.name}</span>
+                                    <Switch
+                                        checked={model.enabled !== false}
+                                        onCheckedChange={(checked) => toggleModel(provider.id, model.id, checked)}
+                                    />
+                                </div>
+                            ))}
+                            {provider.models.length === 0 && (
+                                <div className="text-sm text-muted-foreground italic pl-2">No models configured.</div>
+                            )}
+                        </div>
+                    </div>
+                ))}
+
+                {filteredProviders.length === 0 && (
+                    <div className="flex flex-col items-center justify-center py-10 text-muted-foreground">
+                        <span className="material-symbols-outlined text-4xl mb-2 opacity-50">search_off</span>
+                        <p>No models found.</p>
+                    </div>
+                )}
+            </div>
+        </div>
+    );
+};
+
+export default ManageModelsView;
