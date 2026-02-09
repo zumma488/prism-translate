@@ -6,8 +6,6 @@
 
 包含在本地运行应用所需的一切。
 
-在 AI Studio 中查看应用: https://ai.studio/apps/drive/1ZUaTT-oiv0_QofPIzWlLgpvnWC-k1FG2
-
 ## 技术栈 (Tech Stack)
 
 - **框架**: React 19 + TypeScript + Vite
