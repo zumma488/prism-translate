@@ -4,13 +4,13 @@
   "description": "A modern AI-powered translation dashboard built with React 19, TypeScript, and Vercel AI SDK.",
   "author": "zumma488",
   "license": "MIT",
-  "homepage": "https://github.com/zumma488-collab/prism-translate#readme",
+  "homepage": "https://github.com/zumma488/prism-translate#readme",
   "repository": {
     "type": "git",
-    "url": "https://github.com/zumma488-collab/prism-translate.git"
+    "url": "https://github.com/zumma488/prism-translate.git"
   },
   "bugs": {
-    "url": "https://github.com/zumma488-collab/prism-translate/issues"
+    "url": "https://github.com/zumma488/prism-translate/issues"
   },
   "keywords": [
     "ai",

@@ -38,7 +38,7 @@ A modern AI-powered translation dashboard built with React 19, TypeScript, and t
 1. Clone the repository:
 
    ```bash
-   git clone https://github.com/zumma488-collab/prism-translate.git
+   git clone https://github.com/zumma488/prism-translate.git
    cd prism-translate
    ```
 
