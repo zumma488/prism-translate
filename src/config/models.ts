@@ -297,7 +297,7 @@ export const PROVIDER_DEFINITIONS: ProviderDefinition[] = [
     },
     {
         id: 'custom',
-        name: 'Custom Endpoint',
+        name: 'Custom Provider',
         icon: 'tune',
         description: 'Any OpenAI Compatible API',
         defaultModel: '',
