@@ -10,6 +10,8 @@ interface ManageModelsViewProps {
     onEditProvider: (providerId: string) => void;
     onDeleteProvider: (providerId: string) => void;
     onConnectProvider: () => void;
+    onExportConfig: () => void;
+    onImportConfig: () => void;
 }
 
 const ManageModelsView: React.FC<ManageModelsViewProps> = ({
@@ -17,7 +19,9 @@ const ManageModelsView: React.FC<ManageModelsViewProps> = ({
     onUpdateSettings,
     onEditProvider,
     onDeleteProvider,
-    onConnectProvider
+    onConnectProvider,
+    onExportConfig,
+    onImportConfig
 }) => {
     const [searchQuery, setSearchQuery] = useState('');
 
@@ -83,6 +87,24 @@ const ManageModelsView: React.FC<ManageModelsViewProps> = ({
                 >
                     <span className="material-symbols-outlined text-[18px]">add</span>
                     Connect Provider
+                </Button>
+                <Button
+                    onClick={onImportConfig}
+                    variant="outline"
+                    size="icon"
+                    className="shrink-0 size-9"
+                    title="Import Config"
+                >
+                    <span className="material-symbols-outlined text-[18px]">upload</span>
+                </Button>
+                <Button
+                    onClick={onExportConfig}
+                    variant="outline"
+                    size="icon"
+                    className="shrink-0 size-9"
+                    title="Export Config"
+                >
+                    <span className="material-symbols-outlined text-[18px]">download</span>
                 </Button>
             </div>
 

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Header from './components/Header';
 import SettingsModal from './components/SettingsModal';
 import TranslationCard from './components/TranslationCard';
@@ -6,6 +6,10 @@ import TranslationInput from './components/TranslationInput';
 import { translateText } from './services/llmService';
 import { LANGUAGE_CONFIGS, DEFAULT_LANGUAGES } from './constants';
 import { AppSettings, TranslationResult, AppStatus, ProviderConfig } from './types';
+import { encrypt, decrypt, isEncrypted } from './services/crypto';
+
+const STORAGE_KEY_V3 = 'ai-translator-settings-v3';
+const STORAGE_KEY_V2 = 'ai-translator-settings-v2';
 
 const EMPTY_INITIAL_SETTINGS: AppSettings = {
   activeModelKey: '',
@@ -18,6 +22,8 @@ const App: React.FC = () => {
   const [translations, setTranslations] = useState<TranslationResult[]>([]);
   const [status, setStatus] = useState<AppStatus>(AppStatus.IDLE);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [settingsLoaded, setSettingsLoaded] = useState(false);
+  const settingsInitialized = useRef(false);
 
   // Target Languages State (Persisted)
   const [targetLanguages, setTargetLanguages] = useState<string[]>(() => {
@@ -25,7 +31,6 @@ const App: React.FC = () => {
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
-        // Validate it's an array with at least one language
         if (Array.isArray(parsed) && parsed.length > 0) {
           return parsed;
         }
@@ -36,23 +41,71 @@ const App: React.FC = () => {
     return DEFAULT_LANGUAGES;
   });
 
-  // Settings State (Persisted)
-  const [settings, setSettings] = useState<AppSettings>(() => {
-    const saved = localStorage.getItem('ai-translator-settings-v2');
-    if (saved) {
+  // Settings State (async encrypted persistence)
+  const [settings, setSettings] = useState<AppSettings>(EMPTY_INITIAL_SETTINGS);
+
+  // Async load encrypted settings on mount (with v2 → v3 migration)
+  useEffect(() => {
+    async function loadSettings() {
       try {
-        return JSON.parse(saved);
+        // Try v3 (encrypted) first
+        const v3Data = localStorage.getItem(STORAGE_KEY_V3);
+        if (v3Data) {
+          if (isEncrypted(v3Data)) {
+            const decrypted = await decrypt(v3Data);
+            setSettings(JSON.parse(decrypted));
+          } else {
+            // Fallback: v3 key exists but not encrypted (shouldn't happen)
+            setSettings(JSON.parse(v3Data));
+          }
+          setSettingsLoaded(true);
+          return;
+        }
+
+        // Migrate from v2 (plaintext) to v3 (encrypted)
+        const v2Data = localStorage.getItem(STORAGE_KEY_V2);
+        if (v2Data) {
+          try {
+            const parsed = JSON.parse(v2Data);
+            setSettings(parsed);
+            // Encrypt and save to v3
+            const encrypted = await encrypt(JSON.stringify(parsed));
+            localStorage.setItem(STORAGE_KEY_V3, encrypted);
+            // Remove old v2 key
+            localStorage.removeItem(STORAGE_KEY_V2);
+          } catch (e) {
+            console.error('Failed to migrate v2 settings', e);
+          }
+        }
       } catch (e) {
-        console.error("Failed to parse settings", e);
+        console.error('Failed to load encrypted settings', e);
+      } finally {
+        setSettingsLoaded(true);
       }
     }
-    return EMPTY_INITIAL_SETTINGS;
-  });
 
-  // Persist settings
+    loadSettings();
+  }, []);
+
+  // Persist settings (encrypted) whenever they change
   useEffect(() => {
-    localStorage.setItem('ai-translator-settings-v2', JSON.stringify(settings));
-  }, [settings]);
+    // Skip the initial render and wait for settings to be loaded
+    if (!settingsLoaded) return;
+    if (!settingsInitialized.current) {
+      settingsInitialized.current = true;
+      return;
+    }
+
+    async function saveSettings() {
+      try {
+        const encrypted = await encrypt(JSON.stringify(settings));
+        localStorage.setItem(STORAGE_KEY_V3, encrypted);
+      } catch (e) {
+        console.error('Failed to encrypt and save settings', e);
+      }
+    }
+    saveSettings();
+  }, [settings, settingsLoaded]);
 
   // Persist target languages
   useEffect(() => {
