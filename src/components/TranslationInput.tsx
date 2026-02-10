@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { LANGUAGE_CONFIGS } from '../constants';
 import { AppStatus } from '../types';
+import PortalDropdown from './ui/portal-dropdown';
 
 interface TranslationInputProps {
   inputText: string;
@@ -24,7 +25,6 @@ const TranslationInput: React.FC<TranslationInputProps> = ({
   const [isLanguageDropdownOpen, setIsLanguageDropdownOpen] = useState(false);
   const [maxHeight, setMaxHeight] = useState(400);
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
-  const languageDropdownRef = useRef<HTMLDivElement>(null);
 
   // Calculate max height based on viewport
   useEffect(() => {
@@ -61,19 +61,6 @@ const TranslationInput: React.FC<TranslationInputProps> = ({
       textarea.style.height = `${newHeight}px`;
     }
   }, [inputText, maxHeight]);
-
-  // Close dropdown on click outside
-  useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (languageDropdownRef.current && !languageDropdownRef.current.contains(event.target as Node)) {
-        setIsLanguageDropdownOpen(false);
-      }
-    }
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, []);
 
   const toggleLanguage = (langName: string) => {
     const newLanguages = targetLanguages.includes(langName)
@@ -130,45 +117,49 @@ const TranslationInput: React.FC<TranslationInputProps> = ({
             <div className="flex items-center gap-2">
               {/* Add Language Dropdown - Hidden when no languages available */}
               {getAvailableLanguages().length > 0 && (
-                <div className="relative" ref={languageDropdownRef}>
-                  <button
-                    onClick={() => setIsLanguageDropdownOpen(!isLanguageDropdownOpen)}
-                    disabled={status === AppStatus.LOADING}
-                    className={`px-3 py-1.5 rounded-lg text-sm font-medium bg-background border border-border text-muted-foreground hover:bg-muted hover:text-foreground transition-all flex items-center gap-1.5 ${status === AppStatus.LOADING ? 'opacity-50 cursor-not-allowed' : ''}`}
-                    title="Add Language"
-                  >
-                    <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>add</span>
-                    <span>Add</span>
-                  </button>
-
-                  {isLanguageDropdownOpen && (
-                    <div className="absolute bottom-full right-0 mb-2 w-52 max-h-64 overflow-y-auto bg-card rounded-lg shadow-lg border border-border py-1 z-50 animate-in fade-in zoom-in-95 duration-100">
-                      <div className="px-3 py-1.5 text-xs font-medium text-muted-foreground border-b border-border sticky top-0 bg-card">
-                        Add Language
-                      </div>
-                      {getAvailableLanguages().map(lang => {
-                        const config = LANGUAGE_CONFIGS[lang];
-                        return (
-                          <button
-                            key={lang}
-                            onClick={() => {
-                              toggleLanguage(lang);
-                              setIsLanguageDropdownOpen(false);
-                            }}
-                            className="w-full text-left px-3 py-1.5 text-sm hover:bg-muted transition-colors flex items-center gap-2"
-                          >
-                            <span
-                              className="size-2.5 rounded-full shrink-0"
-                              style={{ backgroundColor: config?.color }}
-                            />
-                            <span className="font-medium text-xs">{config?.nativeName || lang}</span>
-                            <span className="text-muted-foreground text-[10px] ml-auto">{lang}</span>
-                          </button>
-                        );
-                      })}
-                    </div>
-                  )}
-                </div>
+                <PortalDropdown
+                  open={isLanguageDropdownOpen}
+                  onOpenChange={setIsLanguageDropdownOpen}
+                  placement="top-end"
+                  disabled={status === AppStatus.LOADING}
+                  className="w-52 rounded-lg py-1"
+                  trigger={
+                    <button
+                      disabled={status === AppStatus.LOADING}
+                      className={`px-3 py-1.5 rounded-lg text-sm font-medium bg-background border border-border text-muted-foreground hover:bg-muted hover:text-foreground transition-all flex items-center gap-1.5 ${status === AppStatus.LOADING ? 'opacity-50 cursor-not-allowed' : ''}`}
+                      title="Add Language"
+                    >
+                      <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>add</span>
+                      <span>Add</span>
+                    </button>
+                  }
+                >
+                  <div className="px-3 py-1.5 text-xs font-medium text-muted-foreground border-b border-border">
+                    Add Language
+                  </div>
+                  <div className="max-h-56 overflow-y-auto">
+                    {getAvailableLanguages().map(lang => {
+                      const config = LANGUAGE_CONFIGS[lang];
+                      return (
+                        <button
+                          key={lang}
+                          onClick={() => {
+                            toggleLanguage(lang);
+                            setIsLanguageDropdownOpen(false);
+                          }}
+                          className="w-full text-left px-3 py-1.5 text-sm hover:bg-muted transition-colors flex items-center gap-2"
+                        >
+                          <span
+                            className="size-2.5 rounded-full shrink-0"
+                            style={{ backgroundColor: config?.color }}
+                          />
+                          <span className="font-medium text-xs">{config?.nativeName || lang}</span>
+                          <span className="text-muted-foreground text-[10px] ml-auto">{lang}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </PortalDropdown>
               )}
 
               {/* Translate Button */}
