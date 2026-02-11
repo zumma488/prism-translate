@@ -5,12 +5,19 @@
 </div>
 
 <p align="center">
+  <em>A collaborative creation, fully developed by <b>AI Agents</b>.</em><br/>
+  <em>Co-developed by <b>Google Stitch</b>, <b>Google AI Studio</b>, and <b>Antigravity</b>.</em>
+</p>
+
+<p align="center">
   <a href="./README.zh.md">简体中文</a> | <b>English</b>
 </p>
 
 A modern AI-powered translation dashboard built with React 19, TypeScript, and the Vercel AI SDK. This project integrates multiple AI providers (Google Gemini, OpenAI, etc.) to deliver high-quality translations in a sleek, responsive interface.
 
-[Live Demo](https://zumma488.github.io/prism-translate/)
+<p align="center">
+  <a href="https://zumma488.github.io/prism-translate/"><b>Live Demo</b></a>
+</p>
 
 ## ✨ Features
 

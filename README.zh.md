@@ -2,11 +2,18 @@
 <img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
 </div>
 
-# 运行并部署您的 AI Studio 应用
+<p align="center">
+  <em>本应用是一款完全由 <b>AI Agent</b> 开发的翻译工具。</em><br/>
+  <em>由 <b>Google Stitch</b>、<b>Google AI Studio</b> 与 <b>Antigravity</b> 共同协作完成。</em>
+</p>
 
-包含在本地运行应用所需的一切。
+<p align="center">
+  <b>简体中文</b> | <a href="./README.md">English</a>
+</p>
 
-[在线演示](https://zumma488.github.io/prism-translate/)
+<p align="center">
+  <a href="https://zumma488.github.io/prism-translate/"><b>在线演示</b></a>
+</p>
 
 ## 📸 截图预览 (Screenshots)
 
