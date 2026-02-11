@@ -31,38 +31,61 @@ const PortalDropdown: React.FC<PortalDropdownProps> = ({
     const triggerRef = useRef<HTMLDivElement>(null);
     const dropdownRef = useRef<HTMLDivElement>(null);
     const [position, setPosition] = useState({ top: 0, left: 0 });
+    const [isVisible, setIsVisible] = useState(false);
 
     // Calculate dropdown position based on trigger rect and placement
     const updatePosition = useCallback(() => {
-        if (!triggerRef.current) return;
-        const rect = triggerRef.current.getBoundingClientRect();
+        if (!triggerRef.current || !dropdownRef.current) return;
+        
+        const triggerRect = triggerRef.current.getBoundingClientRect();
+        const dropdownRect = dropdownRef.current.getBoundingClientRect();
+        const viewportWidth = window.innerWidth;
+        // const viewportHeight = window.innerHeight; // Unused for now
+
         const [vertical, horizontal] = placement.split('-') as [string, string];
+        let top = 0;
+        let left = 0;
 
-        let top: number;
-        let left: number;
-
+        // Vertical positioning
         if (vertical === 'bottom') {
-            top = rect.bottom + offset;
+            top = triggerRect.bottom + offset + window.scrollY;
         } else {
-            top = rect.top - offset;
+            top = triggerRect.top - offset - dropdownRect.height + window.scrollY;
         }
 
+        // Horizontal positioning
         if (horizontal === 'end') {
-            left = rect.right;
+            left = triggerRect.right - dropdownRect.width + window.scrollX;
         } else {
-            left = rect.left;
+            left = triggerRect.left + window.scrollX;
+        }
+
+        // Horizontal Boundary Check (Keep inside viewport)
+        const PADDING = 10;
+        // Convert back to viewport coordinates for check
+        const viewportLeft = left - window.scrollX;
+        
+        if (viewportLeft < PADDING) {
+            left = PADDING + window.scrollX;
+        } else if (viewportLeft + dropdownRect.width > viewportWidth - PADDING) {
+            left = viewportWidth - dropdownRect.width - PADDING + window.scrollX;
         }
 
         setPosition({ top, left });
+        setIsVisible(true);
     }, [placement, offset]);
 
-    // Update position when opened and on scroll/resize
-    useEffect(() => {
-        if (!open) return;
+    // Use layout effect to calculate position before paint
+    React.useLayoutEffect(() => {
+        if (!open) {
+            setIsVisible(false);
+            return;
+        }
         updatePosition();
 
         window.addEventListener('resize', updatePosition);
         window.addEventListener('scroll', updatePosition, true);
+        
         return () => {
             window.removeEventListener('resize', updatePosition);
             window.removeEventListener('scroll', updatePosition, true);
@@ -101,14 +124,6 @@ const PortalDropdown: React.FC<PortalDropdownProps> = ({
         return () => document.removeEventListener('keydown', handleKeyDown);
     }, [open, onOpenChange]);
 
-    // Build transform based on placement
-    const getTransform = () => {
-        const [vertical, horizontal] = placement.split('-') as [string, string];
-        const translateX = horizontal === 'end' ? '-100%' : '0';
-        const translateY = vertical === 'top' ? '-100%' : '0';
-        return `translate(${translateX}, ${translateY})`;
-    };
-
     return (
         <>
             <div
@@ -126,7 +141,9 @@ const PortalDropdown: React.FC<PortalDropdownProps> = ({
                     style={{
                         top: `${position.top}px`,
                         left: `${position.left}px`,
-                        transform: getTransform(),
+                        opacity: isVisible ? 1 : 0,
+                        pointerEvents: isVisible ? 'auto' : 'none',
+                        // Remove transform based positioning
                     }}
                 >
                     {children}

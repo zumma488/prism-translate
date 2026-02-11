@@ -55,11 +55,24 @@ const App: React.FC = () => {
         const v3Data = localStorage.getItem(STORAGE_KEY_V3);
         if (v3Data) {
           if (isEncrypted(v3Data)) {
-            const decrypted = await decrypt(v3Data);
-            setSettings(JSON.parse(decrypted));
+            try {
+              const decrypted = await decrypt(v3Data);
+              const parsed = JSON.parse(decrypted);
+              setSettings(parsed);
+            } catch (err) {
+              console.error('Decryption failed, resetting settings:', err);
+              // Corrupted data or key mismatch - clear it so we don't crash next time
+              localStorage.removeItem(STORAGE_KEY_V3);
+              setSettings(EMPTY_INITIAL_SETTINGS);
+            }
           } else {
             // Fallback: v3 key exists but not encrypted (shouldn't happen)
-            setSettings(JSON.parse(v3Data));
+            try {
+              setSettings(JSON.parse(v3Data));
+            } catch (e) {
+              console.error('Failed to parse plaintext v3 settings', e);
+              localStorage.removeItem(STORAGE_KEY_V3);
+            }
           }
           setSettingsLoaded(true);
           return;

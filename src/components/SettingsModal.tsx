@@ -56,11 +56,16 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, currentS
     }
   }, [toastMessage]);
 
-  // Intercept mobile back button: close modal when on 'manage' view
-  useBackButton(isOpen && view === 'manage', onClose, 'settings-modal');
-
-  // Intercept mobile back button: navigate back within sub-views
-  useBackButton(isOpen && view !== 'manage', () => {
+  // Intercept mobile back button
+  // We use a single hook for the entire modal lifecycle to avoid flickering
+  // when switching between views (which would cause unmount/remount of the hook)
+  useBackButton(isOpen, () => {
+    if (view === 'manage') {
+      onClose();
+      return false; // Let the back navigation happen (history popped), modal closes
+    } 
+    
+    // Sub-views: navigate back internally
     if (view === 'edit') {
       if (editingProviderId) {
         setView('manage');
@@ -70,7 +75,8 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, currentS
     } else if (view === 'connect') {
       setView('manage');
     }
-  }, `settings-${view}`);
+    return true; // Intercepted: restore history state to keep modal open
+  }, 'settings-modal');
 
   if (!isOpen) return null;
 

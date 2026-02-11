@@ -107,6 +107,12 @@ export async function decrypt(encryptedString: string): Promise<string> {
   const combined = CryptoJS.enc.Base64.parse(base64Data);
 
   // Extract parts
+  // Basic validation: must maintain at least salt + iv
+  if (combined.sigBytes < SALT_LENGTH + IV_LENGTH) {
+    throw new Error('Encrypted data is too short');
+  }
+
+  // Extract parts
   // WordArray.clone() is important because shifting modifies in place
   const salt = CryptoJS.lib.WordArray.create(combined.words.slice(0, SALT_LENGTH / 4), SALT_LENGTH);
   
@@ -140,9 +146,10 @@ export async function decrypt(encryptedString: string): Promise<string> {
   // Convert to UTF8 string
   try {
     const result = decrypted.toString(CryptoJS.enc.Utf8);
-    if (!result) throw new Error('Decryption resulted in empty string');
+    if (!result) throw new Error('Decryption resulted in empty string (wrong key or corrupted data)');
     return result;
   } catch (e) {
-    throw new Error('Failed to decrypt data');
+    // Re-throw with context
+    throw new Error(`Failed to decrypt data: ${e instanceof Error ? e.message : String(e)}`);
   }
 }
