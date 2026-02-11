@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { AppSettings, ProviderConfig } from '../../types';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
@@ -10,6 +11,8 @@ interface ManageModelsViewProps {
     onEditProvider: (providerId: string) => void;
     onDeleteProvider: (providerId: string) => void;
     onConnectProvider: () => void;
+    onExportConfig: () => void;
+    onImportConfig: () => void;
 }
 
 const ManageModelsView: React.FC<ManageModelsViewProps> = ({
@@ -17,8 +20,11 @@ const ManageModelsView: React.FC<ManageModelsViewProps> = ({
     onUpdateSettings,
     onEditProvider,
     onDeleteProvider,
-    onConnectProvider
+    onConnectProvider,
+    onExportConfig,
+    onImportConfig
 }) => {
+    const { t } = useTranslation();
     const [searchQuery, setSearchQuery] = useState('');
 
     const toggleModel = (providerId: string, modelId: string, enabled: boolean) => {
@@ -54,23 +60,23 @@ const ManageModelsView: React.FC<ManageModelsViewProps> = ({
     return (
         <div className="flex flex-col h-full bg-background">
             {/* Header */}
-            <div className="flex items-center justify-between pl-6 pr-14 py-4 border-b border-border">
+            <div className="flex items-center justify-between pl-4 sm:pl-6 pr-10 sm:pr-14 py-3 sm:py-4 border-b border-border">
                 <div>
-                    <h2 className="text-xl font-bold text-foreground tracking-tight">Manage Models</h2>
-                    <p className="text-sm text-muted-foreground mt-1">
-                        Models shown in the custom picker.
+                    <h2 className="text-lg sm:text-xl font-bold text-foreground tracking-tight">{t('settings.manageModels')}</h2>
+                    <p className="text-xs sm:text-sm text-muted-foreground mt-0.5 sm:mt-1">
+                        {t('settings.description')}
                     </p>
                 </div>
             </div>
 
             {/* Search */}
-            <div className="px-6 py-4 flex gap-3">
+            <div className="px-4 sm:px-6 py-3 sm:py-4 flex flex-wrap gap-2 sm:gap-3">
                 <div className="relative flex-1">
                     <Input
                         type="text"
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        placeholder="Search models..."
+                        placeholder={t('settings.searchModels')}
                         className="pl-10"
                     />
                     <span className="material-symbols-outlined absolute left-3 top-2.5 text-muted-foreground text-[18px]">search</span>
@@ -82,25 +88,43 @@ const ManageModelsView: React.FC<ManageModelsViewProps> = ({
                     className="shrink-0"
                 >
                     <span className="material-symbols-outlined text-[18px]">add</span>
-                    Connect Provider
+                    <span className="hidden sm:inline">{t('settings.connectProvider')}</span>
+                </Button>
+                <Button
+                    onClick={onImportConfig}
+                    variant="outline"
+                    size="icon"
+                    className="shrink-0 size-9"
+                    title={t('settings.importConfig')}
+                >
+                    <span className="material-symbols-outlined text-[18px]">upload</span>
+                </Button>
+                <Button
+                    onClick={onExportConfig}
+                    variant="outline"
+                    size="icon"
+                    className="shrink-0 size-9"
+                    title={t('settings.exportConfig')}
+                >
+                    <span className="material-symbols-outlined text-[18px]">download</span>
                 </Button>
             </div>
 
             {/* List */}
-            <div className="flex-1 overflow-y-auto px-6 pb-6 space-y-6">
+            <div className="flex-1 overflow-y-auto px-4 sm:px-6 pb-6 space-y-6">
                 {filteredProviders.map(provider => (
                     <div key={provider.id}>
                         <div className="flex items-center justify-between group mb-2">
                             <h3 className="text-sm font-bold text-foreground">
                                 {provider.name}
                             </h3>
-                            <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <div className="flex items-center gap-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
                                 <Button
                                     variant="ghost"
                                     size="icon"
                                     onClick={() => onEditProvider(provider.id)}
                                     className="size-7 hover:bg-muted"
-                                    title="Edit Provider"
+                                    title={t('settings.editProvider')}
                                 >
                                     <span className="material-symbols-outlined text-[16px]">edit</span>
                                 </Button>
@@ -109,7 +133,7 @@ const ManageModelsView: React.FC<ManageModelsViewProps> = ({
                                     size="icon"
                                     onClick={() => onDeleteProvider(provider.id)}
                                     className="size-7 text-destructive hover:bg-destructive/10 hover:text-destructive"
-                                    title="Delete Provider"
+                                    title={t('settings.deleteProvider')}
                                 >
                                     <span className="material-symbols-outlined text-[16px]">delete</span>
                                 </Button>
@@ -136,7 +160,7 @@ const ManageModelsView: React.FC<ManageModelsViewProps> = ({
                 {filteredProviders.length === 0 && (
                     <div className="flex flex-col items-center justify-center py-10 text-muted-foreground">
                         <span className="material-symbols-outlined text-4xl mb-2 opacity-50">search_off</span>
-                        <p>No models found.</p>
+                        <p>{searchQuery ? t('settings.noModelsFound') : t('settings.noModels')}</p>
                     </div>
                 )}
             </div>

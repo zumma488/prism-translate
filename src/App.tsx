@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import Header from './components/Header';
 import SettingsModal from './components/SettingsModal';
 import TranslationCard from './components/TranslationCard';
@@ -6,6 +7,10 @@ import TranslationInput from './components/TranslationInput';
 import { translateText } from './services/llmService';
 import { LANGUAGE_CONFIGS, DEFAULT_LANGUAGES } from './constants';
 import { AppSettings, TranslationResult, AppStatus, ProviderConfig } from './types';
+import { encrypt, decrypt, isEncrypted } from './services/crypto';
+
+const STORAGE_KEY_V3 = 'ai-translator-settings-v3';
+const STORAGE_KEY_V2 = 'ai-translator-settings-v2';
 
 const EMPTY_INITIAL_SETTINGS: AppSettings = {
   activeModelKey: '',
@@ -13,11 +18,15 @@ const EMPTY_INITIAL_SETTINGS: AppSettings = {
 };
 
 const App: React.FC = () => {
+  const { t } = useTranslation();
+
   // Application State
   const [inputText, setInputText] = useState('');
   const [translations, setTranslations] = useState<TranslationResult[]>([]);
   const [status, setStatus] = useState<AppStatus>(AppStatus.IDLE);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [settingsLoaded, setSettingsLoaded] = useState(false);
+  const settingsInitialized = useRef(false);
 
   // Target Languages State (Persisted)
   const [targetLanguages, setTargetLanguages] = useState<string[]>(() => {
@@ -25,7 +34,6 @@ const App: React.FC = () => {
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
-        // Validate it's an array with at least one language
         if (Array.isArray(parsed) && parsed.length > 0) {
           return parsed;
         }
@@ -36,23 +44,84 @@ const App: React.FC = () => {
     return DEFAULT_LANGUAGES;
   });
 
-  // Settings State (Persisted)
-  const [settings, setSettings] = useState<AppSettings>(() => {
-    const saved = localStorage.getItem('ai-translator-settings-v2');
-    if (saved) {
+  // Settings State (async encrypted persistence)
+  const [settings, setSettings] = useState<AppSettings>(EMPTY_INITIAL_SETTINGS);
+
+  // Async load encrypted settings on mount (with v2 → v3 migration)
+  useEffect(() => {
+    async function loadSettings() {
       try {
-        return JSON.parse(saved);
+        // Try v3 (encrypted) first
+        const v3Data = localStorage.getItem(STORAGE_KEY_V3);
+        if (v3Data) {
+          if (isEncrypted(v3Data)) {
+            try {
+              const decrypted = await decrypt(v3Data);
+              const parsed = JSON.parse(decrypted);
+              setSettings(parsed);
+            } catch (err) {
+              console.error('Decryption failed, resetting settings:', err);
+              // Corrupted data or key mismatch - clear it so we don't crash next time
+              localStorage.removeItem(STORAGE_KEY_V3);
+              setSettings(EMPTY_INITIAL_SETTINGS);
+            }
+          } else {
+            // Fallback: v3 key exists but not encrypted (shouldn't happen)
+            try {
+              setSettings(JSON.parse(v3Data));
+            } catch (e) {
+              console.error('Failed to parse plaintext v3 settings', e);
+              localStorage.removeItem(STORAGE_KEY_V3);
+            }
+          }
+          setSettingsLoaded(true);
+          return;
+        }
+
+        // Migrate from v2 (plaintext) to v3 (encrypted)
+        const v2Data = localStorage.getItem(STORAGE_KEY_V2);
+        if (v2Data) {
+          try {
+            const parsed = JSON.parse(v2Data);
+            setSettings(parsed);
+            // Encrypt and save to v3
+            const encrypted = await encrypt(JSON.stringify(parsed));
+            localStorage.setItem(STORAGE_KEY_V3, encrypted);
+            // Remove old v2 key
+            localStorage.removeItem(STORAGE_KEY_V2);
+          } catch (e) {
+            console.error('Failed to migrate v2 settings', e);
+          }
+        }
       } catch (e) {
-        console.error("Failed to parse settings", e);
+        console.error('Failed to load encrypted settings', e);
+      } finally {
+        setSettingsLoaded(true);
       }
     }
-    return EMPTY_INITIAL_SETTINGS;
-  });
 
-  // Persist settings
+    loadSettings();
+  }, []);
+
+  // Persist settings (encrypted) whenever they change
   useEffect(() => {
-    localStorage.setItem('ai-translator-settings-v2', JSON.stringify(settings));
-  }, [settings]);
+    // Skip the initial render and wait for settings to be loaded
+    if (!settingsLoaded) return;
+    if (!settingsInitialized.current) {
+      settingsInitialized.current = true;
+      return;
+    }
+
+    async function saveSettings() {
+      try {
+        const encrypted = await encrypt(JSON.stringify(settings));
+        localStorage.setItem(STORAGE_KEY_V3, encrypted);
+      } catch (e) {
+        console.error('Failed to encrypt and save settings', e);
+      }
+    }
+    saveSettings();
+  }, [settings, settingsLoaded]);
 
   // Persist target languages
   useEffect(() => {
@@ -106,7 +175,7 @@ const App: React.FC = () => {
     } catch (error) {
       console.error(error);
       setStatus(AppStatus.ERROR);
-      alert(`Translation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      alert(t('errors.translationFailed', { error: error instanceof Error ? error.message : t('errors.unknown') }));
     }
   };
 
@@ -145,7 +214,7 @@ const App: React.FC = () => {
   const currentModel = activeModelMeta();
 
   return (
-    <div className="flex flex-col h-screen overflow-hidden">
+    <div className="flex flex-col h-[100dvh] overflow-hidden md:overflow-hidden">
       <Header
         enabledModels={enabledModels}
         currentModel={currentModel}
@@ -155,8 +224,8 @@ const App: React.FC = () => {
       />
 
       {/* Main Content */}
-      <main className="flex-1 overflow-hidden relative w-full max-w-[1800px] mx-auto">
-        <div className="flex flex-col md:flex-row h-full">
+      <main className="flex-1 overflow-hidden md:overflow-hidden overflow-y-auto relative w-full max-w-[1800px] mx-auto">
+        <div className="flex flex-col md:flex-row h-auto md:h-full">
 
           {/* LEFT: Input Area */}
           <TranslationInput
@@ -169,16 +238,16 @@ const App: React.FC = () => {
           />
 
           {/* RIGHT: Output Area */}
-          <div className="flex flex-col w-full md:w-1/2 h-full bg-background p-6 md:pl-4 overflow-y-auto">
-            <div className="flex flex-col gap-4 pb-20">
+          <div className="flex flex-col w-full md:w-1/2 md:h-full bg-background p-3 sm:p-6 md:pl-4 md:overflow-y-auto">
+            <div className="flex flex-col gap-3 sm:gap-4 pb-6 md:pb-20">
 
               {status === AppStatus.IDLE && translations.length === 0 && (
-                <div className="flex flex-col items-center justify-center h-64 text-muted-foreground">
-                  <div className="size-16 rounded-full bg-muted flex items-center justify-center mb-4">
-                    <span className="material-symbols-outlined text-3xl">translate</span>
+                <div className="flex flex-col items-center justify-center h-40 sm:h-64 text-muted-foreground">
+                  <div className="size-12 sm:size-16 rounded-full bg-muted flex items-center justify-center mb-3 sm:mb-4">
+                    <span className="material-symbols-outlined text-2xl sm:text-3xl">translate</span>
                   </div>
-                  <p className="text-sm font-medium">Translations will appear here</p>
-                  <p className="text-xs text-muted-foreground/70 mt-1">Enter text and click Translate to get started</p>
+                  <p className="text-sm font-medium">{t('translation.output.emptyTitle')}</p>
+                  <p className="text-xs text-muted-foreground/70 mt-1">{t('translation.output.emptySubtitle')}</p>
                 </div>
               )}
 
@@ -197,7 +266,7 @@ const App: React.FC = () => {
               {status === AppStatus.LOADING && (
                 <>
                   {[1, 2, 3].map(i => (
-                    <div key={i} className="bg-card rounded-xl p-5 border border-border animate-pulse">
+                    <div key={i} className="bg-card rounded-xl p-3 sm:p-5 border border-border animate-pulse">
                       <div className="h-4 w-20 bg-muted rounded mb-3"></div>
                       <div className="h-5 w-3/4 bg-muted rounded mb-2"></div>
                       <div className="h-5 w-1/2 bg-muted rounded"></div>

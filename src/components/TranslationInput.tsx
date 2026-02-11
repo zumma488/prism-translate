@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { LANGUAGE_CONFIGS } from '../constants';
 import { AppStatus } from '../types';
 import PortalDropdown from './ui/portal-dropdown';
@@ -22,6 +23,7 @@ const TranslationInput: React.FC<TranslationInputProps> = ({
   status,
   autoFocus = true,
 }) => {
+  const { t } = useTranslation();
   const [isLanguageDropdownOpen, setIsLanguageDropdownOpen] = useState(false);
   const [maxHeight, setMaxHeight] = useState(400);
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
@@ -30,12 +32,20 @@ const TranslationInput: React.FC<TranslationInputProps> = ({
   useEffect(() => {
     const calculateMaxHeight = () => {
       const headerHeight = 73; // Header height with border (py-4 = 32px + border)
-      const verticalPadding = 48; // 24px top + 24px bottom (p-6)
       const toolbarHeight = 100; // Approximate toolbar height
       const spacing = 20; // Extra spacing for safety
       const viewportHeight = window.innerHeight;
-      const calculatedMaxHeight = viewportHeight - headerHeight - verticalPadding - toolbarHeight - spacing;
-      setMaxHeight(Math.max(200, calculatedMaxHeight)); // Ensure at least 200px
+      const isMobile = window.innerWidth < 768; // md breakpoint
+
+      if (isMobile) {
+        // On mobile: cap textarea at ~70% of viewport
+        const mobileMax = Math.floor(viewportHeight * 0.7) - toolbarHeight;
+        setMaxHeight(Math.max(200, mobileMax));
+      } else {
+        const verticalPadding = 48; // 24px top + 24px bottom (p-6)
+        const calculatedMaxHeight = viewportHeight - headerHeight - verticalPadding - toolbarHeight - spacing;
+        setMaxHeight(Math.max(200, calculatedMaxHeight)); // Ensure at least 200px
+      }
     };
 
     calculateMaxHeight();
@@ -84,7 +94,7 @@ const TranslationInput: React.FC<TranslationInputProps> = ({
   };
 
   return (
-    <div className="flex flex-col w-full md:w-1/2 h-full bg-background p-6 md:pr-4 overflow-y-auto">
+    <div className="flex flex-col w-full md:w-1/2 md:h-full bg-background p-3 sm:p-6 md:pr-4 md:overflow-y-auto">
       <div className="flex flex-col bg-card rounded-xl border border-border shadow-sm focus-within:ring-2 focus-within:ring-ring/20 focus-within:border-ring transition-all duration-200">
         <div className="relative">
           <textarea
@@ -92,25 +102,25 @@ const TranslationInput: React.FC<TranslationInputProps> = ({
             value={inputText}
             onChange={(e) => onInputChange(e.target.value)}
             onKeyDown={handleKeyDown}
-            className="w-full p-5 md:p-6 resize-none bg-transparent border-none outline-none text-base md:text-lg leading-relaxed placeholder:text-muted-foreground/50 text-foreground overflow-y-auto"
-            placeholder="Enter text to translate..."
+            className="w-full p-4 sm:p-5 md:p-6 resize-none bg-transparent border-none outline-none text-base md:text-lg leading-relaxed placeholder:text-muted-foreground/50 text-foreground overflow-y-auto"
+            placeholder={t('translation.input.placeholder')}
             maxLength={5000}
             rows={1}
-            style={{ minHeight: '200px', maxHeight: `${maxHeight}px` }}
+            style={{ minHeight: '150px', maxHeight: `${maxHeight}px` }}
           />
         </div>
 
         {/* Toolbar - Optimized Layout */}
-        <div className="p-3 bg-muted/50 border-t border-border rounded-b-xl flex flex-col gap-2">
+        <div className="p-2.5 sm:p-3 bg-muted/50 border-t border-border rounded-b-xl flex flex-col gap-2">
           {/* Row 1: Source + Actions */}
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>language</span>
-              <span className="font-medium">Auto Detect</span>
-              <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>arrow_forward</span>
-              <span className="text-foreground font-medium">{targetLanguages.length} languages</span>
-              <span className="mx-1.5 text-border">|</span>
-              <span className="text-xs">{inputText.length} / 5000</span>
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm text-muted-foreground min-w-0 flex-wrap">
+              <span className="material-symbols-outlined shrink-0" style={{ fontSize: '16px' }}>language</span>
+              <span className="font-medium shrink-0">{t('translation.input.autoDetect')}</span>
+              <span className="material-symbols-outlined shrink-0" style={{ fontSize: '16px' }}>arrow_forward</span>
+              <span className="text-foreground font-medium shrink-0">{t('translation.input.languages', { count: targetLanguages.length })}</span>
+              <span className="hidden sm:inline mx-1.5 text-border">|</span>
+              <span className="hidden sm:inline text-xs">{t('translation.input.charCount', { count: inputText.length })}</span>
             </div>
 
             {/* Action Buttons */}
@@ -126,16 +136,16 @@ const TranslationInput: React.FC<TranslationInputProps> = ({
                   trigger={
                     <button
                       disabled={status === AppStatus.LOADING}
-                      className={`px-3 py-1.5 rounded-lg text-sm font-medium bg-background border border-border text-muted-foreground hover:bg-muted hover:text-foreground transition-all flex items-center gap-1.5 ${status === AppStatus.LOADING ? 'opacity-50 cursor-not-allowed' : ''}`}
-                      title="Add Language"
+                      className={`px-2 sm:px-3 py-1.5 rounded-lg text-sm font-medium bg-background border border-border text-muted-foreground hover:bg-muted hover:text-foreground transition-all flex items-center gap-1.5 ${status === AppStatus.LOADING ? 'opacity-50 cursor-not-allowed' : ''}`}
+                      title={t('translation.input.addLanguage')}
                     >
                       <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>add</span>
-                      <span>Add</span>
+                      <span className="hidden sm:inline">{t('translation.input.add')}</span>
                     </button>
                   }
                 >
                   <div className="px-3 py-1.5 text-xs font-medium text-muted-foreground border-b border-border">
-                    Add Language
+                    {t('translation.input.addLanguage')}
                   </div>
                   <div className="max-h-56 overflow-y-auto">
                     {getAvailableLanguages().map(lang => {
@@ -166,13 +176,13 @@ const TranslationInput: React.FC<TranslationInputProps> = ({
               <button
                 onClick={onTranslate}
                 disabled={status === AppStatus.LOADING || !inputText.trim() || targetLanguages.length === 0}
-                className={`flex items-center gap-2 bg-primary text-primary-foreground px-4 py-1.5 rounded-lg text-sm font-medium transition-all transform active:scale-[0.98] ${(status === AppStatus.LOADING || !inputText.trim() || targetLanguages.length === 0) ? 'opacity-50 cursor-not-allowed' : 'hover:bg-primary/90'}`}
-                title={targetLanguages.length === 0 ? 'Please select at least one target language' : 'Translate (Ctrl+Enter)'}
+                className={`flex items-center gap-1.5 sm:gap-2 bg-primary text-primary-foreground px-3 sm:px-4 py-1.5 rounded-lg text-sm font-medium transition-all transform active:scale-[0.98] ${(status === AppStatus.LOADING || !inputText.trim() || targetLanguages.length === 0) ? 'opacity-50 cursor-not-allowed' : 'hover:bg-primary/90'}`}
+                title={targetLanguages.length === 0 ? t('translation.input.selectLanguageWarning') : t('translation.input.translateHotkey')}
               >
                 <span className={`material-symbols-outlined ${status === AppStatus.LOADING ? 'animate-spin' : ''}`} style={{ fontSize: '16px' }}>
                   {status === AppStatus.LOADING ? 'progress_activity' : 'send'}
                 </span>
-                <span>{status === AppStatus.LOADING ? 'Translating...' : 'Translate'}</span>
+                <span className="hidden sm:inline">{status === AppStatus.LOADING ? t('translation.input.translating') : t('translation.input.translate')}</span>
               </button>
             </div>
           </div>
@@ -188,7 +198,7 @@ const TranslationInput: React.FC<TranslationInputProps> = ({
                   disabled={status === AppStatus.LOADING}
                   className={`px-2 py-0.5 rounded-md text-xs font-medium transition-all whitespace-nowrap flex items-center gap-1 hover:opacity-80 ${status === AppStatus.LOADING ? 'cursor-not-allowed' : ''}`}
                   style={{ backgroundColor: config?.color || '#64748b', color: '#fff' }}
-                  title={status === AppStatus.LOADING ? 'Cannot remove language during translation' : `Remove ${lang}`}
+                  title={status === AppStatus.LOADING ? t('translation.input.cannotRemoveLanguage') : t('translation.input.removeLanguage', { lang })}
                 >
                   <span>{config?.nativeName || lang}</span>
                   <span className="material-symbols-outlined text-[10px] opacity-70">close</span>

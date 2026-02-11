@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ProviderConfig } from '../types';
 import PortalDropdown from './ui/portal-dropdown';
+import LanguageSwitcher from './LanguageSwitcher';
 
 interface ModelItem {
   provider: ProviderConfig;
@@ -24,6 +26,7 @@ const Header: React.FC<HeaderProps> = ({
   onModelSelect,
   onOpenSettings,
 }) => {
+  const { t } = useTranslation();
   const [isModelDropdownOpen, setIsModelDropdownOpen] = useState(false);
 
   const handleModelClick = (uniqueId: string) => {
@@ -37,15 +40,15 @@ const Header: React.FC<HeaderProps> = ({
   };
 
   return (
-    <header className="sticky top-0 z-40 flex items-center justify-between border-b border-border bg-background/80 backdrop-blur-md px-6 py-4 shrink-0">
-      <div className="flex items-center gap-3">
-        <div className="flex items-center justify-center size-9 rounded-lg bg-primary text-primary-foreground">
-          <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>translate</span>
+    <header className="sticky top-0 z-40 flex items-center justify-between border-b border-border bg-background/80 backdrop-blur-md px-3 sm:px-6 py-3 sm:py-4 shrink-0">
+      <div className="flex items-center gap-2 sm:gap-3">
+        <div className="flex items-center justify-center size-8 sm:size-9 rounded-lg bg-primary text-primary-foreground">
+          <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>translate</span>
         </div>
-        <h1 className="text-lg font-semibold tracking-tight">AI Translator</h1>
+        <h1 className="hidden sm:block text-lg font-semibold tracking-tight">{t('header.title')}</h1>
       </div>
 
-      <div className="flex items-center gap-6">
+      <div className="flex items-center gap-2 sm:gap-6">
         <div className="flex items-center gap-2">
           <PortalDropdown
             open={isModelDropdownOpen}
@@ -54,13 +57,13 @@ const Header: React.FC<HeaderProps> = ({
             className="w-72 rounded-xl shadow-xl overflow-hidden py-2"
             trigger={
               <button
-                className="flex items-center gap-2 h-10 px-4 rounded-xl bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors text-sm font-semibold min-w-[160px] justify-between"
-                title="Change Model"
+                className="flex items-center gap-1.5 sm:gap-2 h-9 sm:h-10 px-2.5 sm:px-4 rounded-xl bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors text-sm font-semibold min-w-0 sm:min-w-[160px] justify-between"
+                title={t('header.changeModel')}
               >
-                <div className="flex items-center gap-2">
-                  <span className="material-symbols-outlined text-primary" style={{ fontSize: '20px' }}>neurology</span>
-                  <span className="truncate max-w-[120px]">
-                    {currentModel ? currentModel.modelName : 'Select Model'}
+                <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
+                  <span className="material-symbols-outlined text-primary shrink-0" style={{ fontSize: '20px' }}>neurology</span>
+                  <span className="truncate max-w-[80px] sm:max-w-[120px]">
+                    {currentModel ? currentModel.modelName : t('header.selectModel')}
                   </span>
                 </div>
                 <span className={`material-symbols-outlined text-gray-500 transition-transform duration-200 ${isModelDropdownOpen ? 'rotate-180' : ''}`} style={{ fontSize: '20px' }}>expand_more</span>
@@ -68,12 +71,12 @@ const Header: React.FC<HeaderProps> = ({
             }
           >
             <div className="px-3 py-2 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider flex justify-between items-center">
-              <span>Select Model</span>
+              <span>{t('header.selectModel')}</span>
               <button
                 onClick={handleManageClick}
                 className="text-primary hover:underline text-xs"
               >
-                Manage
+                {t('header.manage')}
               </button>
             </div>
 
@@ -101,16 +104,18 @@ const Header: React.FC<HeaderProps> = ({
 
             {enabledModels.length === 0 && (
               <div className="px-4 py-4 text-center text-sm text-gray-500">
-                No models enabled.
+                {t('header.noModels')}
               </div>
             )}
           </PortalDropdown>
         </div>
 
+        <LanguageSwitcher />
+
         <button
           onClick={onOpenSettings}
           className="flex items-center justify-center size-10 rounded-xl bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors text-gray-600 dark:text-gray-300"
-          title="Settings"
+          title={t('header.settings')}
         >
           <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>settings</span>
         </button>
