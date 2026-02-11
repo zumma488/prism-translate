@@ -64,7 +64,8 @@
       "addModel": "追加",
       "updateProvider": "プロバイダーを更新",
       "nameRequired": "プロバイダー名は必須です",
-      "noModelsAdded": "まだモデルが追加されていません。"
+      "noModelsAdded": "まだモデルが追加されていません。",
+      "configureProviderHint": "カスタムプロバイダーの接続情報を設定します。"
     },
     "provider": {
       "searchPlaceholder": "プロバイダーを検索...",

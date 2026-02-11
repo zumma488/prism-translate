@@ -66,7 +66,8 @@
       "addModel": "Add",
       "updateProvider": "Update Provider",
       "nameRequired": "Provider name is required",
-      "noModelsAdded": "No models added yet."
+      "noModelsAdded": "No models added yet.",
+      "configureProviderHint": "Configure custom provider settings."
     },
     "provider": {
       "searchPlaceholder": "Search providers...",

@@ -64,7 +64,8 @@
       "addModel": "添加",
       "updateProvider": "更新提供商",
       "nameRequired": "提供商名称为必填项",
-      "noModelsAdded": "尚未添加任何模型。"
+      "noModelsAdded": "尚未添加任何模型。",
+      "configureProviderHint": "配置自定义提供商的连接信息。"
     },
     "provider": {
       "searchPlaceholder": "搜索提供商...",

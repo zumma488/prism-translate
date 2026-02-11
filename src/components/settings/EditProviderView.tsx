@@ -76,7 +76,7 @@ const EditProviderView: React.FC<EditProviderViewProps> = ({ initialConfig, onSa
 
             <div className="flex-1 overflow-y-auto px-4 sm:px-8 py-4 sm:py-6 space-y-6">
                 <p className="text-sm text-muted-foreground">
-                    Configure {config.type} provider settings.
+                    {t('settings.form.configureProviderHint')}
                 </p>
 
                 {/* Display Name */}
