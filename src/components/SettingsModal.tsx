@@ -7,6 +7,7 @@ import EditProviderView from './settings/EditProviderView';
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { exportConfig, importConfig, detectConflicts, mergeSettings, overrideSettings } from '../services/configIO';
+import { useBackButton } from '../hooks/useBackButton';
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -54,6 +55,22 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, currentS
       return () => clearTimeout(timer);
     }
   }, [toastMessage]);
+
+  // Intercept mobile back button: close modal when on 'manage' view
+  useBackButton(isOpen && view === 'manage', onClose, 'settings-modal');
+
+  // Intercept mobile back button: navigate back within sub-views
+  useBackButton(isOpen && view !== 'manage', () => {
+    if (view === 'edit') {
+      if (editingProviderId) {
+        setView('manage');
+      } else {
+        setView('connect');
+      }
+    } else if (view === 'connect') {
+      setView('manage');
+    }
+  }, `settings-${view}`);
 
   if (!isOpen) return null;
 
