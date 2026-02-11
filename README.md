@@ -20,6 +20,24 @@ A modern AI-powered translation dashboard built with React 19, TypeScript, and t
 - **Serverless Ready**: Optimized for deployment on Vercel Serverless Functions.
 - **Type-Safe**: Full TypeScript support for robust development.
 
+## 📸 Screenshots
+
+### Dashboard
+
+![Dashboard Desktop](docs/images/dashboard-desktop.png)
+
+### Mobile & Responsive
+
+<p align="center">
+  <img src="docs/images/dashboard-mobile.png" width="300" alt="Mobile View" />
+</p>
+
+### Model Management
+
+|                  Connection                  |              Custom Provider               |             Model Selection              |
+| :------------------------------------------: | :----------------------------------------: | :--------------------------------------: |
+| ![Connect](docs/images/connect-provider.png) | ![Custom](docs/images/custom-provider.png) | ![Manage](docs/images/manage-models.png) |
+
 ## 🛠 Tech Stack
 
 - **Framework**: React 19 + TypeScript + Vite

@@ -8,6 +8,24 @@
 
 [在线演示](https://zumma488.github.io/prism-translate/)
 
+## 📸 截图预览 (Screenshots)
+
+### 仪表盘 (Dashboard)
+
+![Dashboard Desktop](docs/images/dashboard-desktop.png)
+
+### 移动端适配 (Mobile & Responsive)
+
+<p align="center">
+  <img src="docs/images/dashboard-mobile.png" width="300" alt="Mobile View" />
+</p>
+
+### 模型管理 (Model Management)
+
+|                  连接提供商                  |                 自定义模型                 |                 模型选择                 |
+| :------------------------------------------: | :----------------------------------------: | :--------------------------------------: |
+| ![Connect](docs/images/connect-provider.png) | ![Custom](docs/images/custom-provider.png) | ![Manage](docs/images/manage-models.png) |
+
 ## 技术栈 (Tech Stack)
 
 - **框架**: React 19 + TypeScript + Vite
