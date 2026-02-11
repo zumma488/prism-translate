@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import { generateId } from '@/lib/utils';
 import { ProviderConfig, ModelDefinition, ModelProvider } from '../../types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -17,7 +18,7 @@ interface EditProviderViewProps {
 const EditProviderView: React.FC<EditProviderViewProps> = ({ initialConfig, onSave, onDelete, onBack }) => {
     const { t } = useTranslation();
     const [config, setConfig] = useState<ProviderConfig>({
-        id: initialConfig.id || crypto.randomUUID(),
+        id: initialConfig.id || generateId(),
         type: initialConfig.type,
         name: initialConfig.name || '',
         apiKey: initialConfig.apiKey || '',

@@ -3,63 +3,54 @@
  *
  * Storage format: PRISM_ENC_V1:<base64(salt[16] + iv[12] + ciphertext)>
  * Key derivation: PBKDF2 (SHA-256, 100k iterations) from app identifier + salt
+ * 
+ * Updated to use crypto-js for cross-environment compatibility (HTTP/HTTPS)
  */
+
+import CryptoJS from 'crypto-js';
 
 const MAGIC_PREFIX = 'PRISM_ENC_V1:';
 const APP_KEY_MATERIAL = 'prism-translate-v0.1.1-key';
 const SALT_LENGTH = 16;
-const IV_LENGTH = 12;
+// CryptoJS AES uses block size of 128 bits (16 bytes) for IV
+const IV_LENGTH = 16; 
 const PBKDF2_ITERATIONS = 100_000;
+const KEY_SIZE = 256 / 32; // 256 bits = 8 words
 
 /**
- * Derive an AES-256-GCM key from the app identifier and a salt using PBKDF2
+ * Derive an AES-256 key from the app identifier and a salt using PBKDF2
  */
-async function deriveKey(salt: Uint8Array): Promise<CryptoKey> {
-  const encoder = new TextEncoder();
-  const rawKey = encoder.encode(APP_KEY_MATERIAL);
-  const keyMaterial = await crypto.subtle.importKey(
-    'raw',
-    rawKey.buffer as ArrayBuffer,
-    'PBKDF2',
-    false,
-    ['deriveKey']
-  );
-
-  return crypto.subtle.deriveKey(
-    {
-      name: 'PBKDF2',
-      salt: salt.buffer as ArrayBuffer,
-      iterations: PBKDF2_ITERATIONS,
-      hash: 'SHA-256',
-    },
-    keyMaterial,
-    { name: 'AES-GCM', length: 256 },
-    false,
-    ['encrypt', 'decrypt']
-  );
+function deriveKey(salt: CryptoJS.lib.WordArray): CryptoJS.lib.WordArray {
+  return CryptoJS.PBKDF2(APP_KEY_MATERIAL, salt, {
+    keySize: KEY_SIZE,
+    iterations: PBKDF2_ITERATIONS,
+    hasher: CryptoJS.algo.SHA256
+  });
 }
 
 /**
- * Convert Uint8Array to Base64 string
+ * Convert Uint8Array to WordArray
  */
-function toBase64(data: Uint8Array): string {
-  let binary = '';
-  for (let i = 0; i < data.length; i++) {
-    binary += String.fromCharCode(data[i]);
+function uint8ToWordArray(u8arr: Uint8Array): CryptoJS.lib.WordArray {
+  const len = u8arr.length;
+  const words = [];
+  for (let i = 0; i < len; i++) {
+    words[i >>> 2] |= (u8arr[i] & 0xff) << (24 - (i % 4) * 8);
   }
-  return btoa(binary);
+  return CryptoJS.lib.WordArray.create(words, len);
 }
 
 /**
- * Convert Base64 string to Uint8Array
+ * Convert WordArray to Uint8Array
  */
-function fromBase64(base64: string): Uint8Array {
-  const binary = atob(base64);
-  const bytes = new Uint8Array(binary.length);
-  for (let i = 0; i < binary.length; i++) {
-    bytes[i] = binary.charCodeAt(i);
+function wordArrayToUint8(wordArray: CryptoJS.lib.WordArray): Uint8Array {
+  const words = wordArray.words;
+  const sigBytes = wordArray.sigBytes;
+  const u8 = new Uint8Array(sigBytes);
+  for (let i = 0; i < sigBytes; i++) {
+    u8[i] = (words[i >>> 2] >>> (24 - (i % 4) * 8)) & 0xff;
   }
-  return bytes;
+  return u8;
 }
 
 /**
@@ -70,28 +61,35 @@ export function isEncrypted(data: string): boolean {
 }
 
 /**
- * Encrypt a plain text string using AES-256-GCM
+ * Encrypt a plain text string using AES-256 (CBC/GCM depending on implementation)
+ * crypto-js default is AES-CBC with PKCS7 padding.
  * @returns Encrypted string in format: PRISM_ENC_V1:<base64(salt + iv + ciphertext)>
  */
 export async function encrypt(plaintext: string): Promise<string> {
-  const encoder = new TextEncoder();
-  const salt = crypto.getRandomValues(new Uint8Array(SALT_LENGTH));
-  const iv = crypto.getRandomValues(new Uint8Array(IV_LENGTH));
-  const key = await deriveKey(salt);
+  // Generate random salt and IV
+  const salt = CryptoJS.lib.WordArray.random(SALT_LENGTH);
+  const iv = CryptoJS.lib.WordArray.random(IV_LENGTH);
+  
+  // Derive key
+  const key = deriveKey(salt);
 
-  const ciphertext = await crypto.subtle.encrypt(
-    { name: 'AES-GCM', iv },
-    key,
-    encoder.encode(plaintext)
-  );
+  // Encrypt
+  const encrypted = CryptoJS.AES.encrypt(plaintext, key, {
+    iv: iv,
+    mode: CryptoJS.mode.CBC,
+    padding: CryptoJS.pad.Pkcs7
+  });
 
   // Combine: salt + iv + ciphertext
-  const combined = new Uint8Array(SALT_LENGTH + IV_LENGTH + ciphertext.byteLength);
-  combined.set(salt, 0);
-  combined.set(iv, SALT_LENGTH);
-  combined.set(new Uint8Array(ciphertext), SALT_LENGTH + IV_LENGTH);
+  // crypto-js encrypted object has .ciphertext property as WordArray
+  const combined = salt
+    .concat(iv)
+    .concat(encrypted.ciphertext);
 
-  return MAGIC_PREFIX + toBase64(combined);
+  // Convert to Base64
+  const base64 = CryptoJS.enc.Base64.stringify(combined);
+
+  return MAGIC_PREFIX + base64;
 }
 
 /**
@@ -104,19 +102,47 @@ export async function decrypt(encryptedString: string): Promise<string> {
   }
 
   const base64Data = encryptedString.slice(MAGIC_PREFIX.length);
-  const combined = fromBase64(base64Data);
+  
+  // Decode Base64 to WordArray
+  const combined = CryptoJS.enc.Base64.parse(base64Data);
 
-  const salt = combined.slice(0, SALT_LENGTH);
-  const iv = combined.slice(SALT_LENGTH, SALT_LENGTH + IV_LENGTH);
-  const ciphertext = combined.slice(SALT_LENGTH + IV_LENGTH);
-
-  const key = await deriveKey(salt);
-
-  const decrypted = await crypto.subtle.decrypt(
-    { name: 'AES-GCM', iv },
-    key,
-    ciphertext
+  // Extract parts
+  // WordArray.clone() is important because shifting modifies in place
+  const salt = CryptoJS.lib.WordArray.create(combined.words.slice(0, SALT_LENGTH / 4), SALT_LENGTH);
+  
+  // IV starts after SALT
+  // Calculate offset in words (4 bytes per word)
+  const ivStartWord = SALT_LENGTH / 4;
+  const ivEndWord = ivStartWord + (IV_LENGTH / 4);
+  const iv = CryptoJS.lib.WordArray.create(combined.words.slice(ivStartWord, ivEndWord), IV_LENGTH);
+  
+  // Ciphertext is the rest
+  const cipherStartWord = ivEndWord;
+  const ciphertext = CryptoJS.lib.WordArray.create(
+    combined.words.slice(cipherStartWord),
+    combined.sigBytes - SALT_LENGTH - IV_LENGTH
   );
 
-  return new TextDecoder().decode(decrypted);
+  // Derive key
+  const key = deriveKey(salt);
+
+  // Decrypt
+  const decrypted = CryptoJS.AES.decrypt(
+    { ciphertext: ciphertext } as CryptoJS.lib.CipherParams,
+    key,
+    {
+      iv: iv,
+      mode: CryptoJS.mode.CBC,
+      padding: CryptoJS.pad.Pkcs7
+    }
+  );
+
+  // Convert to UTF8 string
+  try {
+    const result = decrypted.toString(CryptoJS.enc.Utf8);
+    if (!result) throw new Error('Decryption resulted in empty string');
+    return result;
+  } catch (e) {
+    throw new Error('Failed to decrypt data');
+  }
 }
