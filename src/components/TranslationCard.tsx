@@ -8,6 +8,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip'
+import { Badge } from '@/components/ui/badge'
 
 interface TranslationCardProps {
   data: TranslationResult
@@ -46,7 +47,7 @@ const TranslationCard: React.FC<TranslationCardProps> = ({
   }
 
   return (
-    <Card className="group relative flex flex-row overflow-hidden hover:shadow-md hover:border-primary/30 transition-all duration-200">
+    <Card className="group relative flex flex-row overflow-hidden hover:shadow-md hover:border-primary/30 transition-all duration-200 p-0 gap-0">
       {/* Left Color Bar */}
       <div
         className="w-1 sm:w-1.5 shrink-0"
@@ -55,9 +56,9 @@ const TranslationCard: React.FC<TranslationCardProps> = ({
       <div className="flex-1 p-3 sm:p-5">
         <div className="flex justify-between items-start mb-2 sm:mb-3">
           <div className="flex items-center gap-2">
-            <span className="px-2 py-0.5 rounded text-xs font-medium bg-muted text-muted-foreground uppercase">
+            <Badge variant="secondary" className="px-2 py-0.5 rounded text-xs font-medium uppercase">
               {data.code}
-            </span>
+            </Badge>
             <span className="font-semibold text-sm text-foreground">
               {data.language}
             </span>
@@ -145,24 +146,25 @@ const TranslationCard: React.FC<TranslationCardProps> = ({
         {(data.tone || data.confidence || data.modelName) && (
           <div className="mt-3 flex gap-2 items-center flex-wrap">
             {data.modelName && (
-              <div
-                className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-muted text-muted-foreground"
+              <Badge
+                variant="secondary"
+                className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium"
                 title={
                   data.providerName ? `Provider: ${data.providerName}` : undefined
                 }
               >
                 {data.modelName}
-              </div>
+              </Badge>
             )}
             {data.tone && (
-              <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-muted text-muted-foreground">
+              <Badge variant="secondary" className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium">
                 {data.tone}
-              </span>
+              </Badge>
             )}
             {data.confidence && (
-              <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-primary/10 text-primary">
+              <Badge variant="outline" className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-primary/10 text-primary border-transparent">
                 {data.confidence}%
-              </span>
+              </Badge>
             )}
           </div>
         )}
