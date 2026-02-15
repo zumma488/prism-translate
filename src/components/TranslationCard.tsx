@@ -1,43 +1,55 @@
-import React, { useState } from 'react';
-import { useTranslation } from 'react-i18next';
-import { TranslationResult, LanguageConfig } from '../types';
+import React, { useState } from 'react'
+import { useTranslation } from 'react-i18next'
+import { TranslationResult, LanguageConfig } from '../types'
+import { Card } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip'
 
 interface TranslationCardProps {
-  data: TranslationResult;
-  config: LanguageConfig;
-  totalLanguages?: number; // Number of languages being translated
+  data: TranslationResult
+  config: LanguageConfig
+  totalLanguages?: number // Number of languages being translated
 }
 
-const COLLAPSE_THRESHOLD = 200; // Characters threshold for collapsing
+const COLLAPSE_THRESHOLD = 200 // Characters threshold for collapsing
 
-const TranslationCard: React.FC<TranslationCardProps> = ({ data, config, totalLanguages = 1 }) => {
-  const { t } = useTranslation();
-  const [isExpanded, setIsExpanded] = useState(false);
+const TranslationCard: React.FC<TranslationCardProps> = ({
+  data,
+  config,
+  totalLanguages = 1,
+}) => {
+  const { t } = useTranslation()
+  const [isExpanded, setIsExpanded] = useState(false)
 
   // Only enable collapsing when multiple languages AND text is long
-  const shouldEnableCollapse = totalLanguages > 1 && data.text.length > COLLAPSE_THRESHOLD;
-  const isCollapsed = shouldEnableCollapse && !isExpanded;
+  const shouldEnableCollapse =
+    totalLanguages > 1 && data.text.length > COLLAPSE_THRESHOLD
+  const isCollapsed = shouldEnableCollapse && !isExpanded
 
   const handleCopy = () => {
-    navigator.clipboard.writeText(data.text);
-  };
+    navigator.clipboard.writeText(data.text)
+  }
 
   const handleSpeak = () => {
     if ('speechSynthesis' in window) {
-      const utterance = new SpeechSynthesisUtterance(data.text);
-      const voices = window.speechSynthesis.getVoices();
-      const langVoice = voices.find(v => v.lang.startsWith(data.code));
-      if (langVoice) utterance.voice = langVoice;
-      utterance.lang = data.code;
-      window.speechSynthesis.speak(utterance);
+      const utterance = new SpeechSynthesisUtterance(data.text)
+      const voices = window.speechSynthesis.getVoices()
+      const langVoice = voices.find((v) => v.lang.startsWith(data.code))
+      if (langVoice) utterance.voice = langVoice
+      utterance.lang = data.code
+      window.speechSynthesis.speak(utterance)
     }
-  };
+  }
 
   return (
-    <div className="group relative flex bg-card rounded-xl border border-border shadow-sm hover:shadow-md hover:border-primary/30 transition-all duration-200 overflow-hidden">
+    <Card className="group relative flex flex-row overflow-hidden hover:shadow-md hover:border-primary/30 transition-all duration-200">
       {/* Left Color Bar */}
       <div
-        className="w-1 sm:w-1.5 shrink-0 rounded-l-xl"
+        className="w-1 sm:w-1.5 shrink-0"
         style={{ backgroundColor: config.color }}
       />
       <div className="flex-1 p-3 sm:p-5">
@@ -51,20 +63,47 @@ const TranslationCard: React.FC<TranslationCardProps> = ({ data, config, totalLa
             </span>
           </div>
           <div className="flex gap-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
-            <button
-              onClick={handleCopy}
-              className="p-1.5 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
-              title={t('translation.output.copy')}
-            >
-              <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>content_copy</span>
-            </button>
-            <button
-              onClick={handleSpeak}
-              className="p-1.5 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
-              title={t('translation.output.listen')}
-            >
-              <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>volume_up</span>
-            </button>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                  onClick={handleCopy}
+                >
+                  <span
+                    className="material-symbols-outlined"
+                    style={{ fontSize: '18px' }}
+                  >
+                    content_copy
+                  </span>
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>{t('translation.output.copy')}</p>
+              </TooltipContent>
+            </Tooltip>
+
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                  onClick={handleSpeak}
+                >
+                  <span
+                    className="material-symbols-outlined"
+                    style={{ fontSize: '18px' }}
+                  >
+                    volume_up
+                  </span>
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>{t('translation.output.listen')}</p>
+              </TooltipContent>
+            </Tooltip>
           </div>
         </div>
 
@@ -85,15 +124,22 @@ const TranslationCard: React.FC<TranslationCardProps> = ({ data, config, totalLa
 
         {/* Expand/Collapse Button */}
         {shouldEnableCollapse && (
-          <button
+          <Button
+            variant="ghost"
+            size="sm"
             onClick={() => setIsExpanded(!isExpanded)}
-            className="mt-2 text-sm text-primary hover:text-primary/80 font-medium flex items-center gap-1 transition-colors cursor-pointer"
+            className="mt-2 text-primary hover:text-primary/80 h-auto p-0 hover:bg-transparent font-medium flex items-center gap-1 transition-colors"
           >
-            <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>
+            <span
+              className="material-symbols-outlined"
+              style={{ fontSize: '16px' }}
+            >
               {isExpanded ? 'expand_less' : 'expand_more'}
             </span>
-            {isExpanded ? t('translation.output.showLess') : t('translation.output.showMore')}
-          </button>
+            {isExpanded
+              ? t('translation.output.showLess')
+              : t('translation.output.showMore')}
+          </Button>
         )}
 
         {(data.tone || data.confidence || data.modelName) && (
@@ -101,7 +147,9 @@ const TranslationCard: React.FC<TranslationCardProps> = ({ data, config, totalLa
             {data.modelName && (
               <div
                 className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-muted text-muted-foreground"
-                title={data.providerName ? `Provider: ${data.providerName}` : undefined}
+                title={
+                  data.providerName ? `Provider: ${data.providerName}` : undefined
+                }
               >
                 {data.modelName}
               </div>
@@ -119,8 +167,8 @@ const TranslationCard: React.FC<TranslationCardProps> = ({ data, config, totalLa
           </div>
         )}
       </div>
-    </div>
-  );
-};
+    </Card>
+  )
+}
 
-export default TranslationCard;
+export default TranslationCard
