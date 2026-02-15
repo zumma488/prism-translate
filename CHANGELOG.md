@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - **Per-Language Model Customization**: Each target language can now use a different AI model for translation, enabling optimal model selection per language pair.
+- **Progressive Translation Display**: Translation results now appear incrementally as each language completes, rather than waiting for all translations to finish. Skeleton loaders dynamically adjust based on remaining translations.
 - **Model Selector Popover**: Introduced a new interactive UI component for selecting AI models on a per-language basis.
 - **Model Info Display**: Translation cards now display the current model being used for each language.
 - **Enhanced shadcn/ui Integration**: Added new components for improved UI consistency:

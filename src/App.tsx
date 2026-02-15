@@ -165,53 +165,53 @@ const App: React.FC = () => {
     setTranslations([]); // Clear previous
 
     try {
-      // Group target languages by model (global vs custom)
-      const modelGroups = new Map<string, string[]>();
-
-      targetLanguages.forEach(lang => {
-        // Use custom model for this language if available, otherwise use global default
+      // Create independent translation tasks for each language
+      const translationTasks = targetLanguages.map(async (lang) => {
         const modelKey = settings.languageModels?.[lang] || settings.activeModelKey;
-        if (!modelGroups.has(modelKey)) {
-          modelGroups.set(modelKey, []);
-        }
-        modelGroups.get(modelKey)?.push(lang);
-      });
-
-      // Execute translations in parallel for each model group
-      const promises = Array.from(modelGroups.entries()).map(async ([modelKey, languages]) => {
         const allModels = getEnabledModels();
-        // Parse providerId:modelId
         const meta = allModels.find(m => m.uniqueId === modelKey);
 
         if (!meta) {
-          console.warn(`Model not found for key: ${modelKey}, skipping languages: ${languages.join(', ')}`);
-          return [];
+          console.warn(`Model not found for key: ${modelKey}, skipping language: ${lang}`);
+          return null;
         }
 
-        const results = await translateText({
-          text: inputText,
-          targetLanguages: languages,
-          provider: meta.provider,
-          modelId: meta.modelId
-        });
+        try {
+          const results = await translateText({
+            text: inputText,
+            targetLanguages: [lang], // Single language per request
+            provider: meta.provider,
+            modelId: meta.modelId
+          });
 
-        // Inject model info into results
-        return results.map(r => ({
-          ...r,
-          modelName: meta.modelName,
-          providerName: meta.providerName || meta.provider.name
-        }));
+          const result = results[0];
+          if (result) {
+            const enrichedResult = {
+              ...result,
+              modelName: meta.modelName,
+              providerName: meta.providerName || meta.provider.name
+            };
+
+            // Progressive update - append result immediately
+            setTranslations(prev => {
+              const newResults = [...prev, enrichedResult];
+              return newResults.sort((a, b) =>
+                targetLanguages.indexOf(a.language) - targetLanguages.indexOf(b.language)
+              );
+            });
+
+            return enrichedResult;
+          }
+        } catch (err) {
+          console.error(`Translation failed for ${lang}:`, err);
+          // Individual language failure doesn't block others
+        }
+
+        return null;
       });
 
-      const resultsArrays = await Promise.all(promises);
-      const allResults = resultsArrays.flat();
-
-      // Sort results to match the order of targetLanguages
-      const sortedResults = allResults.sort((a, b) => {
-        return targetLanguages.indexOf(a.language) - targetLanguages.indexOf(b.language);
-      });
-
-      setTranslations(sortedResults);
+      // Wait for all translations to settle
+      await Promise.all(translationTasks);
       setStatus(AppStatus.SUCCESS);
     } catch (error) {
       console.error(error);
@@ -319,11 +319,11 @@ const App: React.FC = () => {
 
 
 
-              {/* Placeholder skeletons while loading */}
-              {status === AppStatus.LOADING && (
+              {/* Placeholder skeletons for remaining translations */}
+              {status === AppStatus.LOADING && targetLanguages.length > translations.length && (
                 <>
-                  {[1, 2, 3].map(i => (
-                    <div key={i} className="bg-card rounded-xl p-3 sm:p-5 border border-border animate-pulse">
+                  {Array.from({ length: targetLanguages.length - translations.length }).map((_, i) => (
+                    <div key={`skeleton-${i}`} className="bg-card rounded-xl p-3 sm:p-5 border border-border animate-pulse">
                       <div className="h-4 w-20 bg-muted rounded mb-3"></div>
                       <div className="h-5 w-3/4 bg-muted rounded mb-2"></div>
                       <div className="h-5 w-1/2 bg-muted rounded"></div>
