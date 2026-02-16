@@ -1,4 +1,4 @@
-# 🚀 10天0手写代码！我用React 19 + Vercel AI SDK搞出了一个支持17+模型的翻译神器
+# 🚀 从设计→Bug修复→上线全靠AI！我"口述"了一个支持17+模型的多模型翻译系统
 
 > **TL;DR** - 这是一个完全由AI Agent协作开发的翻译Dashboard，从UI设计到代码实现到Bug修复，人类只负责提需求。项目开源，支持Google Gemini、OpenAI、DeepSeek、Kimi等17+ AI提供商，每种语言可独立选择模型。
 
