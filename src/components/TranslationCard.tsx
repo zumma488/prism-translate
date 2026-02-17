@@ -25,6 +25,7 @@ const TranslationCard: React.FC<TranslationCardProps> = ({
 }) => {
   const { t } = useTranslation()
   const [isExpanded, setIsExpanded] = useState(false)
+  const [isVisible, setIsVisible] = useState(true)
 
   // Only enable collapsing when multiple languages AND text is long
   const shouldEnableCollapse =
@@ -105,6 +106,27 @@ const TranslationCard: React.FC<TranslationCardProps> = ({
                 <p>{t('translation.output.listen')}</p>
               </TooltipContent>
             </Tooltip>
+
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                  onClick={() => setIsVisible(!isVisible)}
+                >
+                  <span
+                    className="material-symbols-outlined"
+                    style={{ fontSize: '16px' }}
+                  >
+                    {isVisible ? 'visibility' : 'visibility_off'}
+                  </span>
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>{isVisible ? t('translation.output.hide') : t('translation.output.show')}</p>
+              </TooltipContent>
+            </Tooltip>
           </div>
         </div>
 
@@ -121,39 +143,51 @@ const TranslationCard: React.FC<TranslationCardProps> = ({
           </div>
         ) : (
           <>
-            {/* Text Content with Collapse Logic */}
-            <div className="relative">
-              <p
-                className={`text-base leading-relaxed text-foreground whitespace-pre-wrap ${isCollapsed ? 'line-clamp-6' : ''
-                  }`}
-              >
-                {data.text}
-              </p>
+            {isVisible ? (
+              <>
+                {/* Text Content with Collapse Logic */}
+                <div className="relative">
+                  <p
+                    className={`text-base leading-relaxed text-foreground whitespace-pre-wrap ${isCollapsed ? 'line-clamp-6' : ''
+                      }`}
+                  >
+                    {data.text}
+                  </p>
 
-              {/* Gradient Overlay when collapsed */}
-              {isCollapsed && (
-                <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-card to-transparent pointer-events-none" />
-              )}
-            </div>
+                  {/* Gradient Overlay when collapsed */}
+                  {isCollapsed && (
+                    <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-card to-transparent pointer-events-none" />
+                  )}
+                </div>
 
-            {/* Expand/Collapse Button */}
-            {shouldEnableCollapse && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setIsExpanded(!isExpanded)}
-                className="mt-2 text-primary hover:text-primary/80 h-auto p-0 hover:bg-transparent font-medium flex items-center gap-1 transition-colors"
+                {/* Expand/Collapse Button */}
+                {shouldEnableCollapse && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setIsExpanded(!isExpanded)}
+                    className="mt-2 text-primary hover:text-primary/80 h-auto p-0 hover:bg-transparent font-medium flex items-center gap-1 transition-colors"
+                  >
+                    <span
+                      className="material-symbols-outlined"
+                      style={{ fontSize: '16px' }}
+                    >
+                      {isExpanded ? 'expand_less' : 'expand_more'}
+                    </span>
+                    {isExpanded
+                      ? t('translation.output.showLess')
+                      : t('translation.output.showMore')}
+                  </Button>
+                )}
+              </>
+            ) : (
+              <div
+                className="h-8 flex items-center gap-2 text-muted-foreground/50 text-sm italic select-none cursor-pointer hover:text-muted-foreground transition-colors"
+                onClick={() => setIsVisible(true)}
               >
-                <span
-                  className="material-symbols-outlined"
-                  style={{ fontSize: '16px' }}
-                >
-                  {isExpanded ? 'expand_less' : 'expand_more'}
-                </span>
-                {isExpanded
-                  ? t('translation.output.showLess')
-                  : t('translation.output.showMore')}
-              </Button>
+                <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>visibility_off</span>
+                <span>{t('translation.output.hidden', 'Translation hidden')}</span>
+              </div>
             )}
           </>
         )}

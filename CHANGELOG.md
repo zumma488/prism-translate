@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Multi-Select Model Popover**: `ModelSelectorPopover` now supports checkbox-based multi-selection instead of single radio selection.
 - **Data Type Migration**: `AppSettings.languageModels` upgraded from `Record<string, string>` to `Record<string, string[]>` to support multiple models per language. Automatic migration from old format is included.
 - **Translation Flow**: `handleTranslate()` now creates independent parallel requests for each `(language, model)` pair with progressive result display.
+- **Collapsible Long Translations**: `TranslationCard` now automatically collapses translations longer than 200 characters when multiple languages are being translated, with smooth expand/collapse controls for better readability.
 
 ### Improved
 
