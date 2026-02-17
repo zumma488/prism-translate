@@ -58,7 +58,7 @@ const TranslationGroup: React.FC<TranslationGroupProps> = ({
                 {results.map((result, idx) => (
                     <React.Fragment key={`${result.modelName}-${idx}`}>
                         {idx > 0 && <Separator className="bg-border/60" />}
-                        <div className="p-3 sm:p-5 hover:bg-muted/5 transition-colors">
+                        <div className="relative p-3 pt-10 sm:p-5 sm:pt-10 hover:bg-muted/5 transition-colors">
                             <ResultContent result={result} t={t} totalCount={results.length} index={idx} />
                         </div>
                     </React.Fragment>
@@ -75,10 +75,10 @@ const ResultContent: React.FC<{ result: TranslationResult, t: any, totalCount: n
     return (
         <div className="flex flex-col h-full animate-in fade-in-50 duration-200 slide-in-from-left-1">
             {/* Header / Actions Row */}
-            <div className="flex justify-end items-start mb-1 h-0">
+            <div className="absolute top-2 right-2 sm:top-3 sm:right-3 flex items-start">
                 <div className="flex gap-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity z-10">
                     <button
-                        className="inline-flex items-center justify-center h-8 w-8 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
+                        className="inline-flex items-center justify-center h-8 w-8 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-colors cursor-pointer"
                         onClick={() => navigator.clipboard.writeText(result.text)}
                         title={t('translation.output.copy')}
                         type="button"
@@ -91,7 +91,7 @@ const ResultContent: React.FC<{ result: TranslationResult, t: any, totalCount: n
                         </span>
                     </button>
                     <button
-                        className="inline-flex items-center justify-center h-8 w-8 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
+                        className="inline-flex items-center justify-center h-8 w-8 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-colors cursor-pointer"
                         onClick={() => {
                             if ('speechSynthesis' in window) {
                                 const utterance = new SpeechSynthesisUtterance(result.text)
@@ -113,7 +113,7 @@ const ResultContent: React.FC<{ result: TranslationResult, t: any, totalCount: n
                         </span>
                     </button>
                     <button
-                        className="inline-flex items-center justify-center h-8 w-8 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
+                        className="inline-flex items-center justify-center h-8 w-8 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-colors cursor-pointer"
                         onClick={() => setIsVisible(!isVisible)}
                         title={isVisible ? t('translation.output.hide') : t('translation.output.show')}
                         type="button"
