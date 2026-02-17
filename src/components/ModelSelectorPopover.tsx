@@ -17,7 +17,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 
-interface ModelOption {
+export interface ModelOption {
     uniqueId: string
     modelName: string
     providerName: string
@@ -26,19 +26,19 @@ interface ModelOption {
 
 interface ModelSelectorPopoverProps {
     language: string
-    currentModelId: string | null // null means use default
+    selectedModelIds: string[] // empty means use default
     defaultModelId: string
     availableModels: ModelOption[]
-    onSelect: (modelId: string | null) => void
+    onSelectionChange: (modelIds: string[]) => void
     trigger: React.ReactNode
 }
 
 const ModelSelectorPopover: React.FC<ModelSelectorPopoverProps> = ({
     language,
-    currentModelId,
+    selectedModelIds,
     defaultModelId,
     availableModels,
-    onSelect,
+    onSelectionChange,
     trigger,
 }) => {
     const [isOpen, setIsOpen] = useState(false)
@@ -54,7 +54,18 @@ const ModelSelectorPopover: React.FC<ModelSelectorPopoverProps> = ({
 
     const sortedProviders = Object.keys(modelsByProvider).sort()
 
-    const getEffectiveModelId = () => currentModelId || defaultModelId
+    const hasCustomSelection = selectedModelIds.length > 0
+
+    const handleToggleModel = (modelId: string) => {
+        if (selectedModelIds.includes(modelId)) {
+            // Remove from selection
+            const newIds = selectedModelIds.filter(id => id !== modelId)
+            onSelectionChange(newIds)
+        } else {
+            // Add to selection
+            onSelectionChange([...selectedModelIds, modelId])
+        }
+    }
 
     return (
         <Popover open={isOpen} onOpenChange={setIsOpen}>
@@ -65,15 +76,19 @@ const ModelSelectorPopover: React.FC<ModelSelectorPopoverProps> = ({
                         <div className="flex items-center justify-between">
                             <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider px-1">
                                 Model for {language}
+                                {hasCustomSelection && (
+                                    <span className="ml-1 text-primary">
+                                        ({selectedModelIds.length})
+                                    </span>
+                                )}
                             </span>
-                            {currentModelId && (
+                            {hasCustomSelection && (
                                 <Button
                                     variant="ghost"
                                     size="sm"
                                     className="h-auto p-0 text-[10px] text-primary hover:text-primary/80 hover:bg-transparent"
                                     onClick={() => {
-                                        onSelect(null)
-                                        setIsOpen(false)
+                                        onSelectionChange([])
                                     }}
                                 >
                                     Reset to Global
@@ -91,33 +106,40 @@ const ModelSelectorPopover: React.FC<ModelSelectorPopoverProps> = ({
                         {sortedProviders.map((providerName) => (
                             <CommandGroup key={providerName} heading={providerName}>
                                 {modelsByProvider[providerName].map((model) => {
-                                    const isSelected = model.uniqueId === currentModelId
+                                    const isSelected = selectedModelIds.includes(model.uniqueId)
                                     const isDefault = model.uniqueId === defaultModelId
-                                    const isEffective = model.uniqueId === getEffectiveModelId()
+                                    const isEffectiveDefault = !hasCustomSelection && isDefault
 
                                     return (
                                         <CommandItem
                                             key={model.uniqueId}
                                             value={`${model.modelName} ${model.providerName}`}
                                             onSelect={() => {
-                                                onSelect(model.uniqueId)
-                                                setIsOpen(false)
+                                                handleToggleModel(model.uniqueId)
                                             }}
                                             className="cursor-pointer"
                                         >
                                             <div
                                                 className={cn(
-                                                    'mr-2 flex h-4 w-4 shrink-0 items-center justify-center rounded-full border',
-                                                    isSelected ||
-                                                        (isEffective && !currentModelId && isDefault)
+                                                    'mr-2 flex h-4 w-4 shrink-0 items-center justify-center rounded-sm border',
+                                                    isSelected
                                                         ? 'border-primary bg-primary text-primary-foreground'
-                                                        : 'border-muted-foreground/30 opacity-50'
+                                                        : isEffectiveDefault
+                                                            ? 'border-primary/50 bg-primary/20 text-primary'
+                                                            : 'border-muted-foreground/30 opacity-50'
                                                 )}
                                             >
-                                                {(isSelected ||
-                                                    (isEffective && !currentModelId && isDefault)) && (
-                                                        <div className="h-2 w-2 rounded-full bg-current" />
-                                                    )}
+                                                {isSelected && (
+                                                    <span
+                                                        className="material-symbols-outlined"
+                                                        style={{ fontSize: '14px' }}
+                                                    >
+                                                        check
+                                                    </span>
+                                                )}
+                                                {isEffectiveDefault && !isSelected && (
+                                                    <div className="h-2 w-2 rounded-sm bg-current" />
+                                                )}
                                             </div>
                                             <div className="flex flex-col">
                                                 <span>{model.modelName}</span>

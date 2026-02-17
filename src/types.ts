@@ -44,7 +44,7 @@ export interface ProviderConfig {
 export interface AppSettings {
   providers: ProviderConfig[];
   activeModelKey: string; // Format: "${providerId}:${modelId}"
-  languageModels?: Record<string, string>; // Format: { "es": "${providerId}:${modelId}" }
+  languageModels?: Record<string, string[]>; // Format: { "es": ["${providerId}:${modelId}", ...] }
 }
 
 export interface LanguageConfig {
