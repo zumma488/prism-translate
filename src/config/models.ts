@@ -26,12 +26,27 @@ export const PROVIDER_DEFINITIONS: ProviderDefinition[] = [
         id: 'google',
         name: 'Google Gemini',
         icon: 'token',
-        description: 'Gemini 2.0 Flash, Pro',
+        description: 'Gemini 3 Pro, Flash',
         defaultModel: 'gemini-2.0-flash',
         defaultModels: [
-            { id: 'gemini-2.0-flash', name: 'Gemini 2.0 Flash', enabled: true },
-            { id: 'gemini-2.0-flash-lite', name: 'Gemini 2.0 Flash Lite', enabled: true },
-            { id: 'gemini-1.5-pro', name: 'Gemini 1.5 Pro', enabled: false },
+            {
+                id: 'gemini-2.0-flash',
+                name: 'Gemini 2.0 Flash',
+                enabled: true,
+                capabilities: { vision: true, audio: true }
+            },
+            {
+                id: 'gemini-3-pro',
+                name: 'Gemini 3 Pro',
+                enabled: true,
+                capabilities: { vision: true, audio: true, video: true },
+            },
+            {
+                id: 'gemini-3-flash',
+                name: 'Gemini 3 Flash',
+                enabled: true,
+                capabilities: { vision: true, audio: true, video: true },
+            },
         ],
         category: 'popular',
     },
@@ -246,11 +261,27 @@ export const PROVIDER_DEFINITIONS: ProviderDefinition[] = [
         id: 'custom',
         name: 'Qwen (Tongyi Qianwen)',
         icon: 'cloud_circle',
-        description: 'Qwen3 Max',
-        defaultModel: 'qwen3-max',
+        description: 'Qwen3 Max, Qwen3.5 Plus',
+        defaultModel: 'qwen-max-2025-01-25',
         defaultModels: [
-            { id: 'qwen3-max', name: 'Qwen3 Max', enabled: true },
-            { id: 'qwen3-plus', name: 'Qwen3 Plus', enabled: true },
+            {
+                id: 'qwen-max-2025-01-25',
+                name: 'Qwen3 Max',
+                enabled: true,
+                capabilities: { reasoning: true, coding: true },
+            },
+            {
+                id: 'qwen3.5-plus',
+                name: 'Qwen3.5 Plus',
+                enabled: true,
+                capabilities: { agentic: true },
+            },
+            {
+                id: 'qwen-vl-max',
+                name: 'Qwen3 VL Max',
+                enabled: true,
+                capabilities: { vision: true, video: true },
+            }
         ],
         baseUrl: 'https://dashscope.aliyuncs.com/compatible-mode/v1',
         category: 'all',
