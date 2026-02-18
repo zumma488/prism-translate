@@ -46,9 +46,7 @@
     "confirmDelete": "您确定要移除此提供商吗？",
     "categories": {
       "popular": "热门",
-      "native": "原生 SDK",
-      "community": "社区 / 本地",
-      "compatible": "OpenAI 兼容"
+      "all": "全部提供商"
     },
     "form": {
       "displayName": "显示名称",

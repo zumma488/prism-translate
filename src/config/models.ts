@@ -11,7 +11,7 @@ export interface ProviderDefinition {
     description: string;            // Short description
     defaultModel: string;           // Default model ID
     defaultModels: ModelDefinition[]; // Preset model list
-    category: 'popular' | 'native' | 'community' | 'compatible';
+    category: 'popular' | 'all';
     baseUrl?: string;               // Custom endpoint (OpenAI compatible)
     requires?: string[];            // Extra required fields (e.g., accountId)
 }
@@ -73,7 +73,7 @@ export const PROVIDER_DEFINITIONS: ProviderDefinition[] = [
         category: 'popular',
     },
 
-    // ==================== Native SDK ====================
+    // ==================== All Providers ====================
     {
         id: 'mistral',
         name: 'Mistral AI',
@@ -84,7 +84,7 @@ export const PROVIDER_DEFINITIONS: ProviderDefinition[] = [
             { id: 'mistral-large-latest', name: 'Mistral Large', enabled: true },
             { id: 'mistral-medium-latest', name: 'Mistral Medium', enabled: true },
         ],
-        category: 'native',
+        category: 'all',
     },
     {
         id: 'xai',
@@ -96,7 +96,7 @@ export const PROVIDER_DEFINITIONS: ProviderDefinition[] = [
             { id: 'grok-2', name: 'Grok-2', enabled: true },
             { id: 'grok-2-mini', name: 'Grok-2 Mini', enabled: true },
         ],
-        category: 'native',
+        category: 'all',
     },
     {
         id: 'cohere',
@@ -108,7 +108,7 @@ export const PROVIDER_DEFINITIONS: ProviderDefinition[] = [
             { id: 'command-r-plus', name: 'Command R+', enabled: true },
             { id: 'command-r', name: 'Command R', enabled: true },
         ],
-        category: 'native',
+        category: 'all',
     },
     {
         id: 'groq',
@@ -120,7 +120,7 @@ export const PROVIDER_DEFINITIONS: ProviderDefinition[] = [
             { id: 'llama-3.3-70b-versatile', name: 'Llama 3.3 70B', enabled: true },
             { id: 'llama-3.1-8b-instant', name: 'Llama 3.1 8B', enabled: true },
         ],
-        category: 'native',
+        category: 'all',
     },
     {
         id: 'together',
@@ -132,7 +132,7 @@ export const PROVIDER_DEFINITIONS: ProviderDefinition[] = [
             { id: 'meta-llama/Llama-3.3-70B-Instruct-Turbo', name: 'Llama 3.3 70B Turbo', enabled: true },
             { id: 'mistralai/Mixtral-8x7B-Instruct-v0.1', name: 'Mixtral 8x7B', enabled: true },
         ],
-        category: 'native',
+        category: 'all',
     },
     {
         id: 'fireworks',
@@ -143,7 +143,7 @@ export const PROVIDER_DEFINITIONS: ProviderDefinition[] = [
         defaultModels: [
             { id: 'accounts/fireworks/models/llama-v3p3-70b-instruct', name: 'Llama 3.3 70B', enabled: true },
         ],
-        category: 'native',
+        category: 'all',
     },
     {
         id: 'deepinfra',
@@ -154,7 +154,7 @@ export const PROVIDER_DEFINITIONS: ProviderDefinition[] = [
         defaultModels: [
             { id: 'meta-llama/Llama-3.3-70B-Instruct', name: 'Llama 3.3 70B', enabled: true },
         ],
-        category: 'native',
+        category: 'all',
     },
     {
         id: 'perplexity',
@@ -166,7 +166,7 @@ export const PROVIDER_DEFINITIONS: ProviderDefinition[] = [
             { id: 'sonar-pro', name: 'Sonar Pro', enabled: true },
             { id: 'sonar', name: 'Sonar', enabled: true },
         ],
-        category: 'native',
+        category: 'all',
     },
     {
         id: 'cerebras',
@@ -177,10 +177,8 @@ export const PROVIDER_DEFINITIONS: ProviderDefinition[] = [
         defaultModels: [
             { id: 'llama-3.3-70b', name: 'Llama 3.3 70B', enabled: true },
         ],
-        category: 'native',
+        category: 'all',
     },
-
-    // ==================== Community ====================
     {
         id: 'ollama',
         name: 'Ollama',
@@ -193,7 +191,7 @@ export const PROVIDER_DEFINITIONS: ProviderDefinition[] = [
             { id: 'deepseek-r1', name: 'DeepSeek R1', enabled: true },
         ],
         baseUrl: 'http://localhost:11434/api',
-        category: 'community',
+        category: 'all',
     },
     {
         id: 'zhipu',
@@ -205,7 +203,7 @@ export const PROVIDER_DEFINITIONS: ProviderDefinition[] = [
             { id: 'glm-4-plus', name: 'GLM-4 Plus', enabled: true },
             { id: 'glm-4-flash', name: 'GLM-4 Flash', enabled: true },
         ],
-        category: 'community',
+        category: 'all',
     },
     {
         id: 'openrouter',
@@ -217,7 +215,7 @@ export const PROVIDER_DEFINITIONS: ProviderDefinition[] = [
             { id: 'openai/gpt-4o', name: 'GPT-4o (via OpenRouter)', enabled: true },
             { id: 'anthropic/claude-3.5-sonnet', name: 'Claude 3.5 Sonnet', enabled: true },
         ],
-        category: 'community',
+        category: 'all',
     },
     {
         id: 'workers',
@@ -229,10 +227,8 @@ export const PROVIDER_DEFINITIONS: ProviderDefinition[] = [
             { id: '@cf/meta/llama-3.3-70b-instruct-fp8-fast', name: 'Llama 3.3 70B', enabled: true },
         ],
         requires: ['accountId'],
-        category: 'community',
+        category: 'all',
     },
-
-    // ==================== OpenAI Compatible ====================
     {
         id: 'custom',
         name: 'Kimi (Moonshot)',
@@ -244,7 +240,7 @@ export const PROVIDER_DEFINITIONS: ProviderDefinition[] = [
             { id: 'moonshot-v1-auto', name: 'Moonshot Auto', enabled: true },
         ],
         baseUrl: 'https://api.moonshot.cn/v1',
-        category: 'compatible',
+        category: 'all',
     },
     {
         id: 'custom',
@@ -257,7 +253,7 @@ export const PROVIDER_DEFINITIONS: ProviderDefinition[] = [
             { id: 'qwen3-plus', name: 'Qwen3 Plus', enabled: true },
         ],
         baseUrl: 'https://dashscope.aliyuncs.com/compatible-mode/v1',
-        category: 'compatible',
+        category: 'all',
     },
     {
         id: 'custom',
@@ -269,7 +265,7 @@ export const PROVIDER_DEFINITIONS: ProviderDefinition[] = [
             { id: 'MiniMax-M2', name: 'MiniMax-M2', enabled: true },
         ],
         baseUrl: 'https://api.minimax.chat/v1',
-        category: 'compatible',
+        category: 'all',
     },
     {
         id: 'custom',
@@ -281,7 +277,7 @@ export const PROVIDER_DEFINITIONS: ProviderDefinition[] = [
             { id: 'Baichuan4', name: 'Baichuan4', enabled: true },
         ],
         baseUrl: 'https://api.baichuan-ai.com/v1',
-        category: 'compatible',
+        category: 'all',
     },
     {
         id: 'custom',
@@ -293,7 +289,7 @@ export const PROVIDER_DEFINITIONS: ProviderDefinition[] = [
             { id: 'ep-xxxxx-xxxxx', name: 'Doubao (Endpoint ID Required)', enabled: true },
         ],
         baseUrl: 'https://ark.cn-beijing.volces.com/api/v3',
-        category: 'compatible',
+        category: 'all',
     },
     {
         id: 'custom',
@@ -302,7 +298,7 @@ export const PROVIDER_DEFINITIONS: ProviderDefinition[] = [
         description: 'Any OpenAI Compatible API',
         defaultModel: '',
         defaultModels: [],
-        category: 'compatible',
+        category: 'all',
     },
 ];
 
@@ -341,33 +337,13 @@ export function getAllProviders(): ProviderDefinition[] {
  */
 export const CATEGORY_TITLES: Record<ProviderDefinition['category'], string> = {
     popular: 'Popular',
-    native: 'Native SDK',
-    community: 'Community / Local',
-    compatible: 'OpenAI Compatible',
+    all: 'All Providers',
 };
 
 /**
  * Compatible with old format SUPPORTED_PROVIDERS (for llmService usage)
  */
 export const SUPPORTED_PROVIDERS = {
-    native: PROVIDER_DEFINITIONS
-        .filter(p => p.category === 'popular' || p.category === 'native')
-        .map(p => ({ id: p.id, name: p.name, defaultModel: p.defaultModel })),
-    community: PROVIDER_DEFINITIONS
-        .filter(p => p.category === 'community')
-        .map(p => ({
-            id: p.id,
-            name: p.name,
-            defaultModel: p.defaultModel,
-            baseUrl: p.baseUrl,
-            requires: p.requires
-        })),
-    compatible: PROVIDER_DEFINITIONS
-        .filter(p => p.category === 'compatible')
-        .map(p => ({
-            id: p.id,
-            name: p.name,
-            defaultModel: p.defaultModel,
-            baseUrl: p.baseUrl
-        })),
+    popular: PROVIDER_DEFINITIONS.filter(p => p.category === 'popular'),
+    all: PROVIDER_DEFINITIONS.filter(p => p.category === 'all')
 };

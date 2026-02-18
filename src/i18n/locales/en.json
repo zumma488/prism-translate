@@ -48,9 +48,7 @@
     "confirmDelete": "Are you sure you want to remove this provider?",
     "categories": {
       "popular": "Popular",
-      "native": "Native SDK",
-      "community": "Community / Local",
-      "compatible": "OpenAI Compatible"
+      "all": "All Providers"
     },
     "form": {
       "displayName": "Display Name",
