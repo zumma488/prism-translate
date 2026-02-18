@@ -148,24 +148,26 @@ const Header: React.FC<HeaderProps> = ({
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
+
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={onOpenSettings}
+            className="size-10 rounded-xl"
+            title={t('header.settings')}
+          >
+            <span
+              className="material-symbols-outlined"
+              style={{ fontSize: '20px' }}
+            >
+              tune
+            </span>
+          </Button>
         </div>
 
         <LanguageSwitcher />
 
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={onOpenSettings}
-          className="size-10 rounded-xl"
-          title={t('header.settings')}
-        >
-          <span
-            className="material-symbols-outlined"
-            style={{ fontSize: '20px' }}
-          >
-            settings
-          </span>
-        </Button>
+
       </div>
     </header>
   )
