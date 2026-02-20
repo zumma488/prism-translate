@@ -23,6 +23,7 @@ A modern AI-powered translation dashboard built with React 19, TypeScript, and t
 
 - **Multi-Model Translation Comparison**: Select multiple AI models per language and compare translations side-by-side in a clean vertical layout.
 - **Per-Language Model Selection**: Customize AI models for each target language independently, optimizing translation quality for different language pairs.
+- **Custom Base URL Support**: Configure custom Base URLs for any AI API provider, offering ultimate flexibility for proxy routing and custom enterprise endpoints.
 - **Multi-Model Support**: Seamlessly switch between Google Gemini, OpenAI, and other providers via Vercel AI SDK.
 - **Modern UI/UX**: Built with `shadcn/ui` and Tailwind CSS v4 for a premium, responsive design.
 - **Micro-Animations**: Enhanced user experience with `tw-animate-css`.

@@ -76,20 +76,23 @@ The app supports selecting **multiple AI models** for each target language:
 
 ### LLM Service Architecture
 
-`src/services/llmService.ts` handles all AI provider integrations:
+`src/services/llmService/` directory handles all AI provider integrations:
 
-1. **Provider Type Detection**:
+1. **Modular Provider Logic** (`providers.ts`):
    - Native SDK providers (Google, Anthropic, Mistral, etc.) use direct SDK calls
+   - Extracted AI provider creation logic for 17+ provider configurations
    - OpenAI/Custom providers use auto-detection with fallback
 
-2. **OpenAI-Compatible API Auto-Detection**:
-   - First tries `.chat()` format (most compatible with third-party APIs)
-   - Falls back to default OpenAI Responses API if needed
+2. **OpenAI-Compatible Error Detection** (`safeFetch.ts`):
+   - Extensible error detector system for non-standard API responses
+   - Pattern 1: Top-level status/code fields (e.g., MiniMax status:439)
+   - Pattern 2: OpenAI-style error objects without proper HTTP status
    - Caches successful format per provider for faster subsequent calls
 
-3. **Translation Flow**:
-   - Takes input text and target languages
-   - Uses system prompt requesting JSON response format
+3. **Translation Flow** (`index.ts`):
+   - Entry point that retains the core translation implementation
+   - Takes input text and target languages, uses system prompt requesting JSON format
+   - Enhanced think-tag stripping mechanisms for deep-thinking models
    - Returns `TranslationResult[]` with language, code, text, tone, confidence
 
 4. **Progressive Display** (v0.2.0+):
@@ -199,7 +202,10 @@ src/
 │   ├── settings/              # Settings sub-views
 │   └── ui/                    # shadcn/ui components (17 components)
 ├── services/
-│   ├── llmService.ts          # AI provider integration
+│   ├── llmService/            # AI provider integration modules
+│   │   ├── index.ts           # Core translation logic & entry point
+│   │   ├── providers.ts       # Provider instance factories
+│   │   └── safeFetch.ts       # Custom error detection system
 │   ├── crypto.ts              # Encryption utilities
 │   └── configIO.ts            # Import/export config
 ├── config/

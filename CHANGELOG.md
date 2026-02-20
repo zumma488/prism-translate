@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Custom Base URL Support**: All AI providers now support adding a custom Base URL in the settings (`EditProviderView`), providing more flexibility for API routing.
 - **Multi-Model Translation**: Each target language can now select multiple AI models simultaneously. Results are displayed side-by-side for easy comparison.
 - **TranslationGroup Component**: New component for grouping and displaying multiple translation results per language in a vertical list layout.
 - **Translation Visibility Toggle**: Added an eye icon button to collapse/expand individual translation results, saving screen space.
@@ -16,6 +17,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **UI Layout Refactoring**:
+  - Relocated the toolbar in `TranslationCard` to the top of the translation content, preventing action buttons (copy, play, settings) from overlaying long translations.
+  - Moved the settings button in `Header` to be adjacent to the model selector, and updated its icon to `tune` for better UX grouping.
+- **Translation Rendering Mechanics**: Introduced an `expectedCount` prop to `TranslationGroup` for predictive rendering. Layout shifts during the progressive loading phase of multi-model translations are eliminated, offering a smoother reading experience.
 - **Multi-Select Model Popover**: `ModelSelectorPopover` now supports checkbox-based multi-selection instead of single radio selection.
 - **Data Type Migration**: `AppSettings.languageModels` upgraded from `Record<string, string>` to `Record<string, string[]>` to support multiple models per language. Automatic migration from old format is included.
 - **Translation Flow**: `handleTranslate()` now creates independent parallel requests for each `(language, model)` pair with progressive result display.
@@ -23,8 +28,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Improved
 
+- **Provider Connection UX**: Streamlined the connection and editing interface for a better user experience when managing custom provider settings.
 - **Result Comparison**: Vertical list layout enables direct comparison of translations from different models without tab switching.
 - **Screen Space Efficiency**: Visibility toggle and shared headers reduce visual clutter when comparing multiple translations.
+
+### Fixed
+
+- Added `cursor-pointer` to Dialog close buttons across the app for consistent UX.
+- Added missing `autoDetect` translation key in the Chinese locale.
 
 ## [0.2.0] - 2026-02-15
 
