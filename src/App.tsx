@@ -385,14 +385,29 @@ const App: React.FC = () => {
                   }
                 });
 
-                return grouped.map((group) => (
-                  <TranslationGroup
-                    key={group.language}
-                    results={group.results}
-                    config={getLanguageConfig(group.language, group.results[0]?.code || '')}
-                    totalLanguages={grouped.length}
-                  />
-                ));
+                return grouped.map((group) => {
+                  // Calculate expected count for this specific language
+                  const langModels = settings.languageModels?.[group.language];
+                  let expectedCount = 1; // Default
+
+                  if (langModels && langModels.length > 0) {
+                    // Count only models that actually exist
+                    const validCount = langModels.filter(key =>
+                      enabledModels.some(m => m.uniqueId === key)
+                    ).length;
+                    expectedCount = validCount || 1;
+                  }
+
+                  return (
+                    <TranslationGroup
+                      key={group.language}
+                      results={group.results}
+                      config={getLanguageConfig(group.language, group.results[0]?.code || '')}
+                      totalLanguages={grouped.length}
+                      expectedCount={expectedCount}
+                    />
+                  );
+                });
               })()}
 
               {/* Placeholder skeletons for remaining translations */}

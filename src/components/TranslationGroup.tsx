@@ -10,6 +10,7 @@ interface TranslationGroupProps {
     results: TranslationResult[]
     config: LanguageConfig
     totalLanguages: number
+    expectedCount?: number // The expected number of translations for this language
 }
 
 /**
@@ -21,11 +22,14 @@ const TranslationGroup: React.FC<TranslationGroupProps> = ({
     results,
     config,
     totalLanguages,
+    expectedCount = results.length,
 }) => {
     const { t } = useTranslation()
 
     // Single result: just render TranslationCard directly
-    if (results.length === 1) {
+    // ONLY downgrade if we EXPECT exactly 1 result, otherwise keep the group UI for consistency 
+    // even while waiting for other results
+    if (expectedCount === 1 && results.length === 1) {
         return (
             <TranslationCard
                 data={results[0]}
@@ -59,7 +63,7 @@ const TranslationGroup: React.FC<TranslationGroupProps> = ({
                     <React.Fragment key={`${result.modelName}-${idx}`}>
                         {idx > 0 && <Separator className="bg-border/60" />}
                         <div className="relative p-3 sm:p-5 hover:bg-muted/5 transition-colors">
-                            <ResultContent result={result} t={t} totalCount={results.length} index={idx} />
+                            <ResultContent result={result} t={t} totalCount={expectedCount} index={idx} totalLanguages={totalLanguages} />
                         </div>
                     </React.Fragment>
                 ))}
@@ -69,8 +73,15 @@ const TranslationGroup: React.FC<TranslationGroupProps> = ({
 }
 
 // Internal component for rendering the result content
-const ResultContent: React.FC<{ result: TranslationResult, t: any, totalCount: number, index: number }> = ({ result, t, totalCount, index }) => {
+const COLLAPSE_THRESHOLD = 200
+
+const ResultContent: React.FC<{ result: TranslationResult, t: any, totalCount: number, index: number, totalLanguages: number }> = ({ result, t, totalCount, index, totalLanguages }) => {
     const [isVisible, setIsVisible] = React.useState(true)
+    const [isExpanded, setIsExpanded] = React.useState(false)
+
+    // Only enable collapsing when multiple languages OR multiple models are active AND text is long
+    const shouldEnableCollapse = (totalLanguages > 1 || totalCount > 1) && result.text.length > COLLAPSE_THRESHOLD
+    const isCollapsed = shouldEnableCollapse && !isExpanded
 
     return (
         <div className="flex flex-col h-full animate-in fade-in-50 duration-200 slide-in-from-left-1">
@@ -167,9 +178,36 @@ const ResultContent: React.FC<{ result: TranslationResult, t: any, totalCount: n
                     </div>
 
                     {isVisible ? (
-                        <p className="text-base leading-relaxed text-foreground whitespace-pre-wrap animate-in fade-in zoom-in-95 duration-200">
-                            {result.text}
-                        </p>
+                        <>
+                            <div className="relative">
+                                <p className={`text-base leading-relaxed text-foreground whitespace-pre-wrap animate-in fade-in zoom-in-95 duration-200 ${isCollapsed ? 'line-clamp-6' : ''}`}>
+                                    {result.text}
+                                </p>
+                                {/* Gradient Overlay when collapsed */}
+                                {isCollapsed && (
+                                    <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-card to-transparent pointer-events-none" />
+                                )}
+                            </div>
+
+                            {/* Expand/Collapse Button */}
+                            {shouldEnableCollapse && (
+                                <button
+                                    onClick={() => setIsExpanded(!isExpanded)}
+                                    className="mt-2 text-primary hover:text-primary/80 h-auto p-0 bg-transparent font-medium flex items-center gap-1 transition-colors cursor-pointer text-sm"
+                                    type="button"
+                                >
+                                    <span
+                                        className="material-symbols-outlined"
+                                        style={{ fontSize: '16px' }}
+                                    >
+                                        {isExpanded ? 'expand_less' : 'expand_more'}
+                                    </span>
+                                    {isExpanded
+                                        ? t('translation.output.showLess')
+                                        : t('translation.output.showMore')}
+                                </button>
+                            )}
+                        </>
                     ) : (
                         <div
                             className="h-8 flex items-center gap-2 text-muted-foreground/50 text-sm italic select-none cursor-pointer hover:text-muted-foreground transition-colors"
