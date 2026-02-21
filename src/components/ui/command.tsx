@@ -62,6 +62,7 @@ function CommandDialog({
 
 function CommandInput({
   className,
+  wrapperClassName: _wrapperClassName,
   ...props
 }: React.ComponentProps<typeof CommandPrimitive.Input>) {
   return (

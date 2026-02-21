@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import Header from './components/Header';
 import SettingsModal from './components/SettingsModal';
-import TranslationCard from './components/TranslationCard';
+import TranslationGroup from './components/TranslationGroup';
 import TranslationInput from './components/TranslationInput';
 import { translateText } from './services/llmService';
 import { LANGUAGE_CONFIGS, DEFAULT_LANGUAGES } from './constants';
@@ -17,6 +17,18 @@ const EMPTY_INITIAL_SETTINGS: AppSettings = {
   providers: [],
   languageModels: {}
 };
+
+// Migrate old languageModels format (Record<string, string>) to new (Record<string, string[]>)
+function migrateLanguageModels(parsed: Record<string, unknown>) {
+  if (parsed.languageModels && typeof parsed.languageModels === 'object') {
+    const lm = parsed.languageModels as Record<string, unknown>;
+    for (const [lang, val] of Object.entries(lm)) {
+      if (typeof val === 'string') {
+        lm[lang] = [val];
+      }
+    }
+  }
+}
 
 const App: React.FC = () => {
   const { t } = useTranslation();
@@ -59,6 +71,7 @@ const App: React.FC = () => {
             try {
               const decrypted = await decrypt(v3Data);
               const parsed = JSON.parse(decrypted);
+              migrateLanguageModels(parsed);
               setSettings(parsed);
             } catch (err) {
               console.error('Decryption failed, resetting settings:', err);
@@ -84,6 +97,7 @@ const App: React.FC = () => {
         if (v2Data) {
           try {
             const parsed = JSON.parse(v2Data);
+            migrateLanguageModels(parsed);
             setSettings(parsed);
             // Encrypt and save to v3
             const encrypted = await encrypt(JSON.stringify(parsed));
@@ -153,6 +167,20 @@ const App: React.FC = () => {
     return all.find(m => m.uniqueId === settings.activeModelKey) || all[0];
   };
 
+  // Calculate the total expected translation count for skeleton display
+  const getExpectedTranslationCount = () => {
+    const allModels = getEnabledModels();
+    return targetLanguages.reduce((total, lang) => {
+      const langModels = settings.languageModels?.[lang];
+      if (langModels && langModels.length > 0) {
+        // Count only models that actually exist
+        const validCount = langModels.filter(key => allModels.some(m => m.uniqueId === key)).length;
+        return total + (validCount || 1); // Fallback to 1 if none valid
+      }
+      return total + 1; // Default model
+    }, 0);
+  };
+
   const handleTranslate = async () => {
     if (!inputText.trim()) return;
 
@@ -165,10 +193,23 @@ const App: React.FC = () => {
     setTranslations([]); // Clear previous
 
     try {
-      // Create independent translation tasks for each language
-      const translationTasks = targetLanguages.map(async (lang) => {
-        const modelKey = settings.languageModels?.[lang] || settings.activeModelKey;
-        const allModels = getEnabledModels();
+      const allModels = getEnabledModels();
+
+      // Build a flat list of (language, model) pairs
+      const tasks: { lang: string; modelKey: string }[] = [];
+      targetLanguages.forEach(lang => {
+        const langModelKeys = settings.languageModels?.[lang];
+        if (langModelKeys && langModelKeys.length > 0) {
+          // Multi-model: one task per model
+          langModelKeys.forEach(key => tasks.push({ lang, modelKey: key }));
+        } else {
+          // Single default model
+          tasks.push({ lang, modelKey: settings.activeModelKey });
+        }
+      });
+
+      // Create independent translation tasks
+      const translationTasks = tasks.map(async ({ lang, modelKey }) => {
         const meta = allModels.find(m => m.uniqueId === modelKey);
 
         if (!meta) {
@@ -179,7 +220,7 @@ const App: React.FC = () => {
         try {
           const results = await translateText({
             text: inputText,
-            targetLanguages: [lang], // Single language per request
+            targetLanguages: [lang],
             provider: meta.provider,
             modelId: meta.modelId
           });
@@ -195,16 +236,21 @@ const App: React.FC = () => {
             // Progressive update - append result immediately
             setTranslations(prev => {
               const newResults = [...prev, enrichedResult];
-              return newResults.sort((a, b) =>
-                targetLanguages.indexOf(a.language) - targetLanguages.indexOf(b.language)
-              );
+              // Sort by language order, then by model order within same language
+              return newResults.sort((a, b) => {
+                const langDiff = targetLanguages.indexOf(a.language) - targetLanguages.indexOf(b.language);
+                if (langDiff !== 0) return langDiff;
+                // Within same language, sort by model key order in tasks
+                const aIdx = tasks.findIndex(t => t.lang === a.language && allModels.find(m => m.uniqueId === t.modelKey)?.modelName === a.modelName);
+                const bIdx = tasks.findIndex(t => t.lang === b.language && allModels.find(m => m.uniqueId === t.modelKey)?.modelName === b.modelName);
+                return aIdx - bIdx;
+              });
             });
 
             return enrichedResult;
           }
         } catch (err) {
-          console.error(`Translation failed for ${lang}:`, err);
-          // Show error to user as a failed translation card
+          console.error(`Translation failed for ${lang} with model ${modelKey}:`, err);
           const errorResult: TranslationResult = {
             language: lang,
             code: '',
@@ -267,11 +313,11 @@ const App: React.FC = () => {
     setSettings(prev => ({ ...prev, activeModelKey: uniqueId }));
   };
 
-  const handleLanguageModelChange = (lang: string, modelUniqueId: string | null) => {
+  const handleLanguageModelChange = (lang: string, modelIds: string[]) => {
     setSettings(prev => {
       const newLanguageModels = { ...prev.languageModels };
-      if (modelUniqueId) {
-        newLanguageModels[lang] = modelUniqueId;
+      if (modelIds.length > 0) {
+        newLanguageModels[lang] = modelIds;
       } else {
         delete newLanguageModels[lang];
       }
@@ -324,29 +370,59 @@ const App: React.FC = () => {
                 </div>
               )}
 
-              {translations.map((result, idx) => (
-                <TranslationCard
-                  key={idx}
-                  data={result}
-                  config={getLanguageConfig(result.language, result.code)}
-                  totalLanguages={translations.length}
-                />
-              ))}
+              {/* Group translations by language and render TranslationGroup */}
+              {(() => {
+                // Group translations by language, maintaining order
+                const grouped: { language: string; results: typeof translations }[] = [];
+                const seen = new Set<string>();
+                translations.forEach(result => {
+                  if (!seen.has(result.language)) {
+                    seen.add(result.language);
+                    grouped.push({
+                      language: result.language,
+                      results: translations.filter(r => r.language === result.language),
+                    });
+                  }
+                });
 
+                return grouped.map((group) => {
+                  // Calculate expected count for this specific language
+                  const langModels = settings.languageModels?.[group.language];
+                  let expectedCount = 1; // Default
 
+                  if (langModels && langModels.length > 0) {
+                    // Count only models that actually exist
+                    const validCount = langModels.filter(key =>
+                      enabledModels.some(m => m.uniqueId === key)
+                    ).length;
+                    expectedCount = validCount || 1;
+                  }
+
+                  return (
+                    <TranslationGroup
+                      key={group.language}
+                      results={group.results}
+                      config={getLanguageConfig(group.language, group.results[0]?.code || '')}
+                      totalLanguages={grouped.length}
+                      expectedCount={expectedCount}
+                    />
+                  );
+                });
+              })()}
 
               {/* Placeholder skeletons for remaining translations */}
-              {status === AppStatus.LOADING && targetLanguages.length > translations.length && (
-                <>
-                  {Array.from({ length: targetLanguages.length - translations.length }).map((_, i) => (
-                    <div key={`skeleton-${i}`} className="bg-card rounded-xl p-3 sm:p-5 border border-border animate-pulse">
-                      <div className="h-4 w-20 bg-muted rounded mb-3"></div>
-                      <div className="h-5 w-3/4 bg-muted rounded mb-2"></div>
-                      <div className="h-5 w-1/2 bg-muted rounded"></div>
-                    </div>
-                  ))}
-                </>
-              )}
+              {status === AppStatus.LOADING && (() => {
+                const expectedCount = getExpectedTranslationCount();
+                const remaining = expectedCount - translations.length;
+                if (remaining <= 0) return null;
+                return Array.from({ length: remaining }).map((_, i) => (
+                  <div key={`skeleton-${i}`} className="bg-card rounded-xl p-3 sm:p-5 border border-border animate-pulse">
+                    <div className="h-4 w-20 bg-muted rounded mb-3"></div>
+                    <div className="h-5 w-3/4 bg-muted rounded mb-2"></div>
+                    <div className="h-5 w-1/2 bg-muted rounded"></div>
+                  </div>
+                ));
+              })()}
             </div>
           </div>
         </div>

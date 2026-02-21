@@ -19,7 +19,14 @@ export interface ModelDefinition {
   id: string;       // The actual model ID sent to API (e.g. 'gpt-4o', 'gemini-1.5-pro')
   name: string;     // Display name (e.g. 'GPT-4o (Project A)')
   enabled?: boolean; // Whether it shows up in the main dropdown
-  description?: string;
+  capabilities?: {
+    vision?: boolean;
+    audio?: boolean;
+    reasoning?: boolean; // Deep thinking
+    coding?: boolean;    // Coding optimization
+    agentic?: boolean;   // Agent optimization
+    video?: boolean;
+  };
 }
 
 export interface ProviderConfig {
@@ -44,7 +51,7 @@ export interface ProviderConfig {
 export interface AppSettings {
   providers: ProviderConfig[];
   activeModelKey: string; // Format: "${providerId}:${modelId}"
-  languageModels?: Record<string, string>; // Format: { "es": "${providerId}:${modelId}" }
+  languageModels?: Record<string, string[]>; // Format: { "es": ["${providerId}:${modelId}", ...] }
 }
 
 export interface LanguageConfig {

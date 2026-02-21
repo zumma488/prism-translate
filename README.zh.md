@@ -39,12 +39,12 @@
 
 ## ✨ 功能特性 (Features)
 
+- **多模型翻译对比**: 为每种语言选择多个 AI 模型，在简洁的垂直布局中并排对比翻译结果
 - **每语言独立模型选择**: 为每种目标语言独立定制 AI 模型，优化不同语言对的翻译质量
+- **自定义 Base URL 支持**: 为任意 AI API 提供商配置自定义 Base URL，这为 API 代理路由和企业内网端点提供了极大的灵活性
 - **多模型支持**: 通过 Vercel AI SDK 无缝切换 Google Gemini、OpenAI 等多种 AI 提供商
 - **现代化 UI/UX**: 使用 `shadcn/ui` 和 Tailwind CSS v4 打造高端响应式设计
 - **微动画效果**: 通过 `tw-animate-css` 提升用户体验
-- **微动画效果**: 通过 `tw-animate-css` 提升用户体验
-- **类型安全**: 完整的 TypeScript 支持，确保开发稳健性
 - **类型安全**: 完整的 TypeScript 支持，确保开发稳健性
 
 ## 技术栈 (Tech Stack)

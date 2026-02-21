@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { AppSettings, ProviderConfig, ModelProvider } from '../types';
+import { ProviderDefinition } from '@/config/models';
 import ManageModelsView from './settings/ManageModelsView';
 import ConnectProviderView from './settings/ConnectProviderView';
 import EditProviderView from './settings/EditProviderView';
@@ -26,6 +27,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, currentS
   const [localSettings, setLocalSettings] = useState<AppSettings>(currentSettings);
   const [editingProviderId, setEditingProviderId] = useState<string | null>(null);
   const [newProviderType, setNewProviderType] = useState<ModelProvider | null>(null);
+  const [newProviderDef, setNewProviderDef] = useState<ProviderDefinition | undefined>(undefined);
 
   // Import/Export state
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -43,6 +45,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, currentS
       setView('manage');
       setEditingProviderId(null);
       setNewProviderType(null);
+      setNewProviderDef(undefined);
       setImportConflict(null);
       setToastMessage(null);
     }
@@ -63,8 +66,8 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, currentS
     if (view === 'manage') {
       onClose();
       return false; // Let the back navigation happen (history popped), modal closes
-    } 
-    
+    }
+
     // Sub-views: navigate back internally
     if (view === 'edit') {
       if (editingProviderId) {
@@ -91,8 +94,9 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, currentS
     setView('connect');
   };
 
-  const handleSelectProviderType = (type: ModelProvider) => {
+  const handleSelectProviderType = (type: ModelProvider, providerDef?: ProviderDefinition) => {
     setNewProviderType(type);
+    setNewProviderDef(providerDef);
     setEditingProviderId(null); // It's a new one
     setView('edit');
   };
@@ -151,11 +155,22 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, currentS
       if (found) return found;
     }
     // New
-    return {
+    const baseConfig = {
       type: newProviderType || 'custom',
       models: [],
       headers: {}
     };
+
+    if (newProviderDef) {
+      return {
+        ...baseConfig,
+        name: newProviderDef.name,
+        baseUrl: newProviderDef.baseUrl,
+        models: newProviderDef.defaultModels ? [...newProviderDef.defaultModels] : [],
+      };
+    }
+
+    return baseConfig;
   };
 
   // --- Import/Export Handlers ---

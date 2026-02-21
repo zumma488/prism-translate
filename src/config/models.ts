@@ -11,9 +11,10 @@ export interface ProviderDefinition {
     description: string;            // Short description
     defaultModel: string;           // Default model ID
     defaultModels: ModelDefinition[]; // Preset model list
-    category: 'popular' | 'native' | 'community' | 'compatible';
+    category: 'popular' | 'all';
     baseUrl?: string;               // Custom endpoint (OpenAI compatible)
     requires?: string[];            // Extra required fields (e.g., accountId)
+    supportsFetchModels?: boolean;  // Whether GET /models endpoint is supported (default: true)
 }
 
 /**
@@ -26,14 +27,30 @@ export const PROVIDER_DEFINITIONS: ProviderDefinition[] = [
         id: 'google',
         name: 'Google Gemini',
         icon: 'token',
-        description: 'Gemini 2.0 Flash, Pro',
+        description: 'Gemini 3 Pro, Flash',
         defaultModel: 'gemini-2.0-flash',
         defaultModels: [
-            { id: 'gemini-2.0-flash', name: 'Gemini 2.0 Flash', enabled: true },
-            { id: 'gemini-2.0-flash-lite', name: 'Gemini 2.0 Flash Lite', enabled: true },
-            { id: 'gemini-1.5-pro', name: 'Gemini 1.5 Pro', enabled: false },
+            {
+                id: 'gemini-2.0-flash',
+                name: 'Gemini 2.0 Flash',
+                enabled: true,
+                capabilities: { vision: true, audio: true }
+            },
+            {
+                id: 'gemini-3-pro',
+                name: 'Gemini 3 Pro',
+                enabled: true,
+                capabilities: { vision: true, audio: true, video: true },
+            },
+            {
+                id: 'gemini-3-flash',
+                name: 'Gemini 3 Flash',
+                enabled: true,
+                capabilities: { vision: true, audio: true, video: true },
+            },
         ],
         category: 'popular',
+        supportsFetchModels: true,
     },
     {
         id: 'openai',
@@ -47,6 +64,7 @@ export const PROVIDER_DEFINITIONS: ProviderDefinition[] = [
             { id: 'gpt-4-turbo', name: 'GPT-4 Turbo', enabled: false },
         ],
         category: 'popular',
+        supportsFetchModels: true,
     },
     {
         id: 'anthropic',
@@ -59,6 +77,7 @@ export const PROVIDER_DEFINITIONS: ProviderDefinition[] = [
             { id: 'claude-3-5-haiku-20241022', name: 'Claude 3.5 Haiku', enabled: true },
         ],
         category: 'popular',
+        supportsFetchModels: true,
     },
     {
         id: 'deepseek',
@@ -71,9 +90,10 @@ export const PROVIDER_DEFINITIONS: ProviderDefinition[] = [
             { id: 'deepseek-coder', name: 'DeepSeek Coder', enabled: true },
         ],
         category: 'popular',
+        supportsFetchModels: true,
     },
 
-    // ==================== Native SDK ====================
+    // ==================== All Providers ====================
     {
         id: 'mistral',
         name: 'Mistral AI',
@@ -84,7 +104,8 @@ export const PROVIDER_DEFINITIONS: ProviderDefinition[] = [
             { id: 'mistral-large-latest', name: 'Mistral Large', enabled: true },
             { id: 'mistral-medium-latest', name: 'Mistral Medium', enabled: true },
         ],
-        category: 'native',
+        category: 'all',
+        supportsFetchModels: true,
     },
     {
         id: 'xai',
@@ -96,7 +117,8 @@ export const PROVIDER_DEFINITIONS: ProviderDefinition[] = [
             { id: 'grok-2', name: 'Grok-2', enabled: true },
             { id: 'grok-2-mini', name: 'Grok-2 Mini', enabled: true },
         ],
-        category: 'native',
+        category: 'all',
+        supportsFetchModels: true,
     },
     {
         id: 'cohere',
@@ -108,7 +130,8 @@ export const PROVIDER_DEFINITIONS: ProviderDefinition[] = [
             { id: 'command-r-plus', name: 'Command R+', enabled: true },
             { id: 'command-r', name: 'Command R', enabled: true },
         ],
-        category: 'native',
+        category: 'all',
+        supportsFetchModels: true,
     },
     {
         id: 'groq',
@@ -120,7 +143,8 @@ export const PROVIDER_DEFINITIONS: ProviderDefinition[] = [
             { id: 'llama-3.3-70b-versatile', name: 'Llama 3.3 70B', enabled: true },
             { id: 'llama-3.1-8b-instant', name: 'Llama 3.1 8B', enabled: true },
         ],
-        category: 'native',
+        category: 'all',
+        supportsFetchModels: true,
     },
     {
         id: 'together',
@@ -132,7 +156,8 @@ export const PROVIDER_DEFINITIONS: ProviderDefinition[] = [
             { id: 'meta-llama/Llama-3.3-70B-Instruct-Turbo', name: 'Llama 3.3 70B Turbo', enabled: true },
             { id: 'mistralai/Mixtral-8x7B-Instruct-v0.1', name: 'Mixtral 8x7B', enabled: true },
         ],
-        category: 'native',
+        category: 'all',
+        supportsFetchModels: true,
     },
     {
         id: 'fireworks',
@@ -143,7 +168,8 @@ export const PROVIDER_DEFINITIONS: ProviderDefinition[] = [
         defaultModels: [
             { id: 'accounts/fireworks/models/llama-v3p3-70b-instruct', name: 'Llama 3.3 70B', enabled: true },
         ],
-        category: 'native',
+        category: 'all',
+        supportsFetchModels: true,
     },
     {
         id: 'deepinfra',
@@ -154,7 +180,8 @@ export const PROVIDER_DEFINITIONS: ProviderDefinition[] = [
         defaultModels: [
             { id: 'meta-llama/Llama-3.3-70B-Instruct', name: 'Llama 3.3 70B', enabled: true },
         ],
-        category: 'native',
+        category: 'all',
+        supportsFetchModels: true,
     },
     {
         id: 'perplexity',
@@ -166,7 +193,8 @@ export const PROVIDER_DEFINITIONS: ProviderDefinition[] = [
             { id: 'sonar-pro', name: 'Sonar Pro', enabled: true },
             { id: 'sonar', name: 'Sonar', enabled: true },
         ],
-        category: 'native',
+        category: 'all',
+        supportsFetchModels: true,
     },
     {
         id: 'cerebras',
@@ -177,10 +205,9 @@ export const PROVIDER_DEFINITIONS: ProviderDefinition[] = [
         defaultModels: [
             { id: 'llama-3.3-70b', name: 'Llama 3.3 70B', enabled: true },
         ],
-        category: 'native',
+        category: 'all',
+        supportsFetchModels: true,
     },
-
-    // ==================== Community ====================
     {
         id: 'ollama',
         name: 'Ollama',
@@ -193,7 +220,8 @@ export const PROVIDER_DEFINITIONS: ProviderDefinition[] = [
             { id: 'deepseek-r1', name: 'DeepSeek R1', enabled: true },
         ],
         baseUrl: 'http://localhost:11434/api',
-        category: 'community',
+        category: 'all',
+        supportsFetchModels: true,
     },
     {
         id: 'zhipu',
@@ -205,7 +233,8 @@ export const PROVIDER_DEFINITIONS: ProviderDefinition[] = [
             { id: 'glm-4-plus', name: 'GLM-4 Plus', enabled: true },
             { id: 'glm-4-flash', name: 'GLM-4 Flash', enabled: true },
         ],
-        category: 'community',
+        category: 'all',
+        supportsFetchModels: true,
     },
     {
         id: 'openrouter',
@@ -217,7 +246,8 @@ export const PROVIDER_DEFINITIONS: ProviderDefinition[] = [
             { id: 'openai/gpt-4o', name: 'GPT-4o (via OpenRouter)', enabled: true },
             { id: 'anthropic/claude-3.5-sonnet', name: 'Claude 3.5 Sonnet', enabled: true },
         ],
-        category: 'community',
+        category: 'all',
+        supportsFetchModels: true,
     },
     {
         id: 'workers',
@@ -229,10 +259,9 @@ export const PROVIDER_DEFINITIONS: ProviderDefinition[] = [
             { id: '@cf/meta/llama-3.3-70b-instruct-fp8-fast', name: 'Llama 3.3 70B', enabled: true },
         ],
         requires: ['accountId'],
-        category: 'community',
+        category: 'all',
+        supportsFetchModels: true,
     },
-
-    // ==================== OpenAI Compatible ====================
     {
         id: 'custom',
         name: 'Kimi (Moonshot)',
@@ -244,20 +273,38 @@ export const PROVIDER_DEFINITIONS: ProviderDefinition[] = [
             { id: 'moonshot-v1-auto', name: 'Moonshot Auto', enabled: true },
         ],
         baseUrl: 'https://api.moonshot.cn/v1',
-        category: 'compatible',
+        category: 'all',
+        supportsFetchModels: true,
     },
     {
         id: 'custom',
         name: 'Qwen (Tongyi Qianwen)',
         icon: 'cloud_circle',
-        description: 'Qwen3 Max',
-        defaultModel: 'qwen3-max',
+        description: 'Qwen3 Max, Qwen3.5 Plus',
+        defaultModel: 'qwen-max-2025-01-25',
         defaultModels: [
-            { id: 'qwen3-max', name: 'Qwen3 Max', enabled: true },
-            { id: 'qwen3-plus', name: 'Qwen3 Plus', enabled: true },
+            {
+                id: 'qwen-max-2025-01-25',
+                name: 'Qwen3 Max',
+                enabled: true,
+                capabilities: { reasoning: true, coding: true },
+            },
+            {
+                id: 'qwen3.5-plus',
+                name: 'Qwen3.5 Plus',
+                enabled: true,
+                capabilities: { agentic: true },
+            },
+            {
+                id: 'qwen-vl-max',
+                name: 'Qwen3 VL Max',
+                enabled: true,
+                capabilities: { vision: true, video: true },
+            }
         ],
         baseUrl: 'https://dashscope.aliyuncs.com/compatible-mode/v1',
-        category: 'compatible',
+        category: 'all',
+        supportsFetchModels: true,
     },
     {
         id: 'custom',
@@ -268,8 +315,9 @@ export const PROVIDER_DEFINITIONS: ProviderDefinition[] = [
         defaultModels: [
             { id: 'MiniMax-M2', name: 'MiniMax-M2', enabled: true },
         ],
-        baseUrl: 'https://api.minimax.chat/v1',
-        category: 'compatible',
+        baseUrl: 'https://api.minimaxi.com/v1',
+        category: 'all',
+        supportsFetchModels: true,
     },
     {
         id: 'custom',
@@ -281,7 +329,8 @@ export const PROVIDER_DEFINITIONS: ProviderDefinition[] = [
             { id: 'Baichuan4', name: 'Baichuan4', enabled: true },
         ],
         baseUrl: 'https://api.baichuan-ai.com/v1',
-        category: 'compatible',
+        category: 'all',
+        supportsFetchModels: true,
     },
     {
         id: 'custom',
@@ -293,7 +342,8 @@ export const PROVIDER_DEFINITIONS: ProviderDefinition[] = [
             { id: 'ep-xxxxx-xxxxx', name: 'Doubao (Endpoint ID Required)', enabled: true },
         ],
         baseUrl: 'https://ark.cn-beijing.volces.com/api/v3',
-        category: 'compatible',
+        category: 'all',
+        supportsFetchModels: true,
     },
     {
         id: 'custom',
@@ -302,7 +352,8 @@ export const PROVIDER_DEFINITIONS: ProviderDefinition[] = [
         description: 'Any OpenAI Compatible API',
         defaultModel: '',
         defaultModels: [],
-        category: 'compatible',
+        category: 'all',
+        supportsFetchModels: true,
     },
 ];
 
@@ -341,33 +392,13 @@ export function getAllProviders(): ProviderDefinition[] {
  */
 export const CATEGORY_TITLES: Record<ProviderDefinition['category'], string> = {
     popular: 'Popular',
-    native: 'Native SDK',
-    community: 'Community / Local',
-    compatible: 'OpenAI Compatible',
+    all: 'All Providers',
 };
 
 /**
  * Compatible with old format SUPPORTED_PROVIDERS (for llmService usage)
  */
 export const SUPPORTED_PROVIDERS = {
-    native: PROVIDER_DEFINITIONS
-        .filter(p => p.category === 'popular' || p.category === 'native')
-        .map(p => ({ id: p.id, name: p.name, defaultModel: p.defaultModel })),
-    community: PROVIDER_DEFINITIONS
-        .filter(p => p.category === 'community')
-        .map(p => ({
-            id: p.id,
-            name: p.name,
-            defaultModel: p.defaultModel,
-            baseUrl: p.baseUrl,
-            requires: p.requires
-        })),
-    compatible: PROVIDER_DEFINITIONS
-        .filter(p => p.category === 'compatible')
-        .map(p => ({
-            id: p.id,
-            name: p.name,
-            defaultModel: p.defaultModel,
-            baseUrl: p.baseUrl
-        })),
+    popular: PROVIDER_DEFINITIONS.filter(p => p.category === 'popular'),
+    all: PROVIDER_DEFINITIONS.filter(p => p.category === 'all')
 };

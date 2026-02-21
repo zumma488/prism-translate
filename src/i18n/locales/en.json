@@ -48,15 +48,15 @@
     "confirmDelete": "Are you sure you want to remove this provider?",
     "categories": {
       "popular": "Popular",
-      "native": "Native SDK",
-      "community": "Community / Local",
-      "compatible": "OpenAI Compatible"
+      "all": "All Providers"
     },
     "form": {
       "displayName": "Display Name",
       "displayNamePlaceholder": "My Provider",
       "baseUrl": "Base URL",
       "baseUrlPlaceholder": "https://api.example.com/v1",
+      "enableCustomBaseUrl": "Enable Custom Base URL",
+      "customBaseUrlHint": "Override the default API endpoint (e.g. for reverse proxy)",
       "apiKey": "API Key",
       "apiKeyPlaceholder": "sk-...",
       "apiKeyHint": "Stored locally in your browser.",

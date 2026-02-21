@@ -141,9 +141,7 @@ const ConnectProviderView: React.FC<ConnectProviderViewProps> = ({ onSelectType,
                 ) : (
                     <div className="space-y-6">
                         {renderSection('popular')}
-                        {renderSection('native')}
-                        {renderSection('community')}
-                        {renderSection('compatible')}
+                        {renderSection('all')}
                     </div>
                 )}
             </div>

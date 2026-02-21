@@ -14,17 +14,17 @@ interface ModelOption {
 
 interface LanguageTagProps {
     language: string
-    currentModelId: string | null
+    selectedModelIds: string[]
     defaultModelId: string
     availableModels: ModelOption[]
     status: AppStatus
     onRemove: () => void
-    onModelChange: (modelId: string | null) => void
+    onModelChange: (modelIds: string[]) => void
 }
 
 const LanguageTag: React.FC<LanguageTagProps> = ({
     language,
-    currentModelId,
+    selectedModelIds,
     defaultModelId,
     availableModels,
     status,
@@ -33,7 +33,7 @@ const LanguageTag: React.FC<LanguageTagProps> = ({
 }) => {
     const { t } = useTranslation()
     const config = LANGUAGE_CONFIGS[language]
-    const hasCustomModel = !!currentModelId
+    const hasCustomModel = selectedModelIds.length > 0
 
     return (
         <div
@@ -42,10 +42,10 @@ const LanguageTag: React.FC<LanguageTagProps> = ({
         >
             <ModelSelectorPopover
                 language={config?.nativeName || language}
-                currentModelId={currentModelId}
+                selectedModelIds={selectedModelIds}
                 defaultModelId={defaultModelId}
                 availableModels={availableModels}
-                onSelect={(modelId) => onModelChange(modelId)}
+                onSelectionChange={(modelIds) => onModelChange(modelIds)}
                 trigger={
                     <button
                         disabled={status === AppStatus.LOADING}
@@ -84,9 +84,10 @@ const LanguageTag: React.FC<LanguageTagProps> = ({
             {hasCustomModel && (
                 <div className="language-tag__tooltip">
                     <div className="language-tag__tooltip-content">
-                        Using:{' '}
-                        {availableModels.find((m) => m.uniqueId === currentModelId)
-                            ?.modelName || 'Unknown'}
+                        {selectedModelIds.length === 1
+                            ? `Using: ${availableModels.find((m) => m.uniqueId === selectedModelIds[0])
+                                ?.modelName || 'Unknown'}`
+                            : `Using: ${selectedModelIds.length} models`}
                     </div>
                 </div>
             )}

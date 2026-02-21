@@ -36,8 +36,8 @@ interface TranslationInputProps {
   status: AppStatus
   autoFocus?: boolean
   availableModels: ModelOption[]
-  languageModels: Record<string, string>
-  onLanguageModelChange: (lang: string, modelId: string | null) => void
+  languageModels: Record<string, string[]>
+  onLanguageModelChange: (lang: string, modelIds: string[]) => void
   defaultModelId: string
 }
 
@@ -289,12 +289,12 @@ const TranslationInput: React.FC<TranslationInputProps> = ({
               <LanguageTag
                 key={lang}
                 language={lang}
-                currentModelId={languageModels[lang] || null}
+                selectedModelIds={languageModels[lang] || []}
                 defaultModelId={defaultModelId}
                 availableModels={availableModels}
                 status={status}
                 onRemove={() => toggleLanguage(lang)}
-                onModelChange={(modelId) => onLanguageModelChange(lang, modelId)}
+                onModelChange={(modelIds) => onLanguageModelChange(lang, modelIds)}
               />
             ))}
           </div>

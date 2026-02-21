@@ -25,6 +25,7 @@ const TranslationCard: React.FC<TranslationCardProps> = ({
 }) => {
   const { t } = useTranslation()
   const [isExpanded, setIsExpanded] = useState(false)
+  const [isVisible, setIsVisible] = useState(true)
 
   // Only enable collapsing when multiple languages AND text is long
   const shouldEnableCollapse =
@@ -56,25 +57,54 @@ const TranslationCard: React.FC<TranslationCardProps> = ({
       <div className="flex-1 p-3 sm:p-5">
         <div className="flex justify-between items-start mb-2 sm:mb-3">
           <div className="flex items-center gap-2">
-            <Badge variant="secondary" className="px-2 py-0.5 rounded text-xs font-medium uppercase">
-              {data.code}
-            </Badge>
+
             <span className="font-semibold text-sm text-foreground">
               {data.language}
             </span>
           </div>
+
+        </div>
+
+        {/* Toolbar: Model Info & Actions */}
+        <div className="flex items-center justify-between gap-2 mb-2">
+          {/* Left: Model Info */}
+          <div className="flex gap-2 items-center flex-wrap">
+            {data.modelName && (
+              <Badge
+                variant="outline"
+                className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium"
+                title={
+                  data.providerName ? `Provider: ${data.providerName}` : undefined
+                }
+              >
+                {data.modelName}
+              </Badge>
+            )}
+            {data.tone && (
+              <Badge variant="outline" className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium">
+                {data.tone}
+              </Badge>
+            )}
+            {data.confidence && (
+              <Badge variant="outline" className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium">
+                {data.confidence}%
+              </Badge>
+            )}
+          </div>
+
+          {/* Right: Actions */}
           <div className="flex gap-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                  className="h-7 w-7 text-muted-foreground hover:text-foreground"
                   onClick={handleCopy}
                 >
                   <span
                     className="material-symbols-outlined"
-                    style={{ fontSize: '18px' }}
+                    style={{ fontSize: '16px' }}
                   >
                     content_copy
                   </span>
@@ -90,12 +120,12 @@ const TranslationCard: React.FC<TranslationCardProps> = ({
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                  className="h-7 w-7 text-muted-foreground hover:text-foreground"
                   onClick={handleSpeak}
                 >
                   <span
                     className="material-symbols-outlined"
-                    style={{ fontSize: '18px' }}
+                    style={{ fontSize: '16px' }}
                   >
                     volume_up
                   </span>
@@ -103,6 +133,27 @@ const TranslationCard: React.FC<TranslationCardProps> = ({
               </TooltipTrigger>
               <TooltipContent>
                 <p>{t('translation.output.listen')}</p>
+              </TooltipContent>
+            </Tooltip>
+
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-7 w-7 text-muted-foreground hover:text-foreground"
+                  onClick={() => setIsVisible(!isVisible)}
+                >
+                  <span
+                    className="material-symbols-outlined"
+                    style={{ fontSize: '16px' }}
+                  >
+                    {isVisible ? 'visibility' : 'visibility_off'}
+                  </span>
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>{isVisible ? t('translation.output.hide') : t('translation.output.show')}</p>
               </TooltipContent>
             </Tooltip>
           </div>
@@ -121,68 +172,56 @@ const TranslationCard: React.FC<TranslationCardProps> = ({
           </div>
         ) : (
           <>
-            {/* Text Content with Collapse Logic */}
-            <div className="relative">
-              <p
-                className={`text-base leading-relaxed text-foreground whitespace-pre-wrap ${isCollapsed ? 'line-clamp-6' : ''
-                  }`}
-              >
-                {data.text}
-              </p>
+            {isVisible ? (
+              <>
+                {/* Text Content with Collapse Logic */}
+                <div className="relative">
+                  <p
+                    className={`text-base leading-relaxed text-foreground whitespace-pre-wrap ${isCollapsed ? 'line-clamp-6' : ''
+                      }`}
+                  >
+                    {data.text}
+                  </p>
 
-              {/* Gradient Overlay when collapsed */}
-              {isCollapsed && (
-                <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-card to-transparent pointer-events-none" />
-              )}
-            </div>
+                  {/* Gradient Overlay when collapsed */}
+                  {isCollapsed && (
+                    <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-card to-transparent pointer-events-none" />
+                  )}
+                </div>
 
-            {/* Expand/Collapse Button */}
-            {shouldEnableCollapse && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setIsExpanded(!isExpanded)}
-                className="mt-2 text-primary hover:text-primary/80 h-auto p-0 hover:bg-transparent font-medium flex items-center gap-1 transition-colors"
+                {/* Expand/Collapse Button */}
+                {shouldEnableCollapse && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setIsExpanded(!isExpanded)}
+                    className="mt-2 text-primary hover:text-primary/80 h-auto p-0 hover:bg-transparent font-medium flex items-center gap-1 transition-colors"
+                  >
+                    <span
+                      className="material-symbols-outlined"
+                      style={{ fontSize: '16px' }}
+                    >
+                      {isExpanded ? 'expand_less' : 'expand_more'}
+                    </span>
+                    {isExpanded
+                      ? t('translation.output.showLess')
+                      : t('translation.output.showMore')}
+                  </Button>
+                )}
+              </>
+            ) : (
+              <div
+                className="h-6 flex items-center gap-1.5 text-muted-foreground/50 text-xs italic select-none cursor-pointer hover:text-muted-foreground transition-colors"
+                onClick={() => setIsVisible(true)}
               >
-                <span
-                  className="material-symbols-outlined"
-                  style={{ fontSize: '16px' }}
-                >
-                  {isExpanded ? 'expand_less' : 'expand_more'}
-                </span>
-                {isExpanded
-                  ? t('translation.output.showLess')
-                  : t('translation.output.showMore')}
-              </Button>
+                <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>visibility_off</span>
+                <span>{t('translation.output.hidden', 'Translation hidden')}</span>
+              </div>
             )}
           </>
         )}
 
-        {(data.tone || data.confidence || data.modelName) && (
-          <div className="mt-3 flex gap-2 items-center flex-wrap">
-            {data.modelName && (
-              <Badge
-                variant="secondary"
-                className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium"
-                title={
-                  data.providerName ? `Provider: ${data.providerName}` : undefined
-                }
-              >
-                {data.modelName}
-              </Badge>
-            )}
-            {data.tone && (
-              <Badge variant="secondary" className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium">
-                {data.tone}
-              </Badge>
-            )}
-            {data.confidence && (
-              <Badge variant="outline" className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-primary/10 text-primary border-transparent">
-                {data.confidence}%
-              </Badge>
-            )}
-          </div>
-        )}
+
       </div>
     </Card>
   )
