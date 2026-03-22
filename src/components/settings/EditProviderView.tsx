@@ -32,6 +32,7 @@ const EditProviderView: React.FC<EditProviderViewProps> = ({ initialConfig, onSa
         name: initialConfig.name || '',
         apiKey: initialConfig.apiKey || '',
         baseUrl: initialConfig.baseUrl || '',
+        protocol: initialConfig.protocol || (initialConfig.type === 'openai' ? 'responses' : 'chat'),
         models: initialConfig.models || [],
         headers: initialConfig.headers || {}
     });
@@ -242,6 +243,26 @@ const EditProviderView: React.FC<EditProviderViewProps> = ({ initialConfig, onSa
                     />
                     <p className="text-xs text-muted-foreground">{t('settings.form.apiKeyHint')}</p>
                 </div>
+
+                {(config.type === 'openai' || config.type === 'custom') && (
+                    <div className="space-y-2">
+                        <Label htmlFor="protocol">{t('settings.form.protocol')}</Label>
+                        <select
+                            id="protocol"
+                            value={config.protocol || (config.type === 'openai' ? 'responses' : 'chat')}
+                            onChange={(e) => setConfig({ ...config, protocol: e.target.value as 'responses' | 'chat' })}
+                            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background"
+                        >
+                            <option value="responses">{t('settings.form.protocolResponses')}</option>
+                            <option value="chat">{t('settings.form.protocolChat')}</option>
+                        </select>
+                        <p className="text-xs text-muted-foreground">
+                            {config.type === 'openai'
+                                ? t('settings.form.protocolHintOpenAI')
+                                : t('settings.form.protocolHintCompatible')}
+                        </p>
+                    </div>
+                )}
 
                 <Separator />
 

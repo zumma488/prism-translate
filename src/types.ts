@@ -35,6 +35,7 @@ export interface ProviderConfig {
   name: string;         // Display name for the provider (e.g. "My Company OpenAI")
   apiKey: string;
   baseUrl?: string;     // Only for OpenAI/Custom/Ollama
+  protocol?: 'responses' | 'chat'; // OpenAI-compatible protocol mode
   headers?: Record<string, string>; // Custom headers
   models: ModelDefinition[];
 

@@ -20,6 +20,14 @@ import { createOpenRouter } from '@openrouter/ai-sdk-provider';
 import { ProviderConfig } from '../../types';
 import { safeFetch } from './safeFetch';
 
+function resolveOpenAIProtocol(provider: ProviderConfig): 'responses' | 'chat' {
+    if (provider.protocol) {
+        return provider.protocol;
+    }
+
+    return provider.type === 'openai' ? 'responses' : 'chat';
+}
+
 export function createModel(provider: ProviderConfig, modelId: string): LanguageModel {
     switch (provider.type) {
         case 'google': {
@@ -124,9 +132,11 @@ export function createModel(provider: ProviderConfig, modelId: string): Language
                 baseURL: provider.baseUrl || 'https://api.openai.com/v1',
                 fetch: safeFetch,
             });
-            // Use .chat() for better compatibility with third-party APIs
-            // The default uses OpenAI Responses API which may not be supported
-            return openai.chat(modelId);
+
+            const protocol = resolveOpenAIProtocol(provider);
+
+            // Official OpenAI supports Responses API well; many third-party compatible APIs still only support Chat Completions.
+            return protocol === 'responses' ? openai.responses(modelId) : openai.chat(modelId);
         }
     }
 }

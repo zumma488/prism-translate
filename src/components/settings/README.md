@@ -23,6 +23,7 @@
 - 承接设置 UI 交互
 - 展示 provider 编辑视图
 - 承接模型拉取与选择交互
+- 承接 OpenAI / OpenAI-compatible Provider 的协议选择交互（Responses / Chat Completions）
 
 ## 约束
 

@@ -27,6 +27,7 @@
 这个模块应负责：
 - Provider 的新增、编辑、删除
 - 模型列表管理
+- OpenAI / OpenAI-compatible Provider 的协议模式选择（Responses / Chat Completions）
 - 默认模型与语言绑定模型管理
 - 配置导入导出
 - 配置迁移与持久化
