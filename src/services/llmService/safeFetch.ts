@@ -16,6 +16,37 @@ interface DetectedError {
 
 type ErrorDetector = (body: Record<string, unknown>) => DetectedError | null;
 
+const NON_ERROR_STATUS_VALUES = new Set(['200', '0', 'ok', 'success']);
+const RESPONSE_LIFECYCLE_STATUSES = new Set(['completed', 'in_progress', 'queued', 'incomplete']);
+const FAILURE_STATUS_KEYWORDS = ['error', 'fail', 'invalid', 'unauthorized', 'forbidden', 'expired', 'denied', 'rate_limit', 'not_found'];
+
+function normalizeStatus(value: unknown): string | null {
+    if (value == null) {
+        return null;
+    }
+
+    return String(value).trim().toLowerCase();
+}
+
+function isKnownSuccessBody(body: Record<string, unknown>): boolean {
+    if ('choices' in body || 'candidates' in body) {
+        return true;
+    }
+
+    // Responses API returns lifecycle statuses such as "completed" on successful
+    // responses, so these payloads must pass through untouched.
+    if (body.object === 'response') {
+        return true;
+    }
+
+    const status = normalizeStatus(body.status);
+    if (!status || !RESPONSE_LIFECYCLE_STATUSES.has(status)) {
+        return false;
+    }
+
+    return 'output' in body || 'usage' in body || 'model' in body || 'id' in body;
+}
+
 /**
  * Extensible list of error detection strategies.
  * Each detector inspects the parsed response body and returns a DetectedError
@@ -26,14 +57,25 @@ const errorDetectors: ErrorDetector[] = [
     // e.g. MiniMax: {"status":"439","msg":"Token expired","body":null}
     // e.g. Others:  {"code":10001,"message":"Invalid API key"}
     (body) => {
-        const status = body.status ?? body.code ?? body.errcode ?? body.error_code;
-        if (status == null || ['200', '0', 'ok', 'success'].includes(String(status).toLowerCase())) {
+        const rawStatus = body.status ?? body.code ?? body.errcode ?? body.error_code;
+        const status = normalizeStatus(rawStatus);
+
+        if (status == null || NON_ERROR_STATUS_VALUES.has(status) || RESPONSE_LIFECYCLE_STATUSES.has(status)) {
             return null;
         }
+
         const msg = body.msg ?? body.message ?? body.errmsg ?? body.error_msg;
+        const hasMessage = msg != null && String(msg).trim() !== '';
+        const looksNumericCode = typeof rawStatus === 'number' || /^\d+$/.test(status);
+        const looksFailureStatus = FAILURE_STATUS_KEYWORDS.some((keyword) => status.includes(keyword));
+
+        if (!looksNumericCode && !looksFailureStatus && !hasMessage) {
+            return null;
+        }
+
         return {
             message: String(msg || `Non-standard API error (status: ${status})`),
-            code: status as string | number,
+            code: rawStatus as string | number,
         };
     },
 
@@ -69,8 +111,7 @@ export const safeFetch: typeof fetch = async (input, init) => {
         const body = JSON.parse(text);
 
         if (body && typeof body === 'object' && !Array.isArray(body)) {
-            // Valid AI response fields — pass through
-            if ('choices' in body || 'candidates' in body) return response;
+            if (isKnownSuccessBody(body)) return response;
 
             // Run through error detectors
             for (const detect of errorDetectors) {
@@ -84,7 +125,7 @@ export const safeFetch: typeof fetch = async (input, init) => {
             }
         }
     } catch {
-        // Parsing failed — let SDK handle original response
+        // Parsing failed, let SDK handle original response
     }
     return response;
 };
