@@ -28,14 +28,12 @@
 ## 当前关键组件
 
 - `TranslationInput.tsx`
-- `TranslationGroup.tsx`
-- `TranslationCard.tsx`
 - `SettingsModal.tsx`
 - `ModelSelectorPopover.tsx`
 
 ## 结构说明
 
-当前项目还是“按组件目录集中组织”的结构，所以一部分本该属于 feature 的组件目前仍在这里。后续如果往目标骨架演进，应逐步把业务语义明确的组件迁到对应 feature 下。
+当前项目还是“按组件目录集中组织”的结构，所以一部分本该属于 feature 的组件仍在逐步迁移。`TranslationGroup.tsx` 和 `TranslationCard.tsx` 已移动到 `src/features/translation/components/`，这里保留更通用的页面级与设置相关组件。
 
 ## 阅读建议
 

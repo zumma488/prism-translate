@@ -19,10 +19,15 @@
 ## 应承载的内容
 
 未来这里应放：
-- `useTranslationRunner`
 - `useTranslationResults`
 - `useLanguageBindings`
 - `useTranslationState`
+
+当前已落入本目录：
+- `usePersistedTargetLanguages.ts`
+  - 承载目标语言列表的读取与持久化编排
+- `useTranslationRunner.ts`
+  - 承载翻译执行状态、结果收集与错误分发
 
 ## 约束
 

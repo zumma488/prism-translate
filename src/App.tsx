@@ -1,19 +1,15 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useTranslation } from 'react-i18next';
 import Header from './components/Header';
 import SettingsModal from './components/SettingsModal';
-import TranslationGroup from './components/TranslationGroup';
 import TranslationInput from './components/TranslationInput';
-import { LANGUAGE_CONFIGS, DEFAULT_LANGUAGES } from './constants';
-import { AppSettings, TranslationResult, AppStatus } from './types';
+import { AppSettings } from './types';
 import {
   getActiveModelMeta,
   getEnabledModels,
-  getExpectedCountForLanguage,
-  getExpectedTranslationCount,
-  groupTranslationsByLanguage,
 } from './features/translation/services/translationOrchestrator';
-import { executeTranslationFlow } from './features/translation/services/translationExecutionService';
+import { TranslationOutputPanel } from './features/translation/components/TranslationOutputPanel';
+import { usePersistedTargetLanguages } from './features/translation/hooks/usePersistedTargetLanguages';
+import { useTranslationRunner } from './features/translation/hooks/useTranslationRunner';
 import {
   EMPTY_INITIAL_SETTINGS,
   loadPersistedSettings,
@@ -22,31 +18,12 @@ import {
 } from './features/settings/services/settingsPersistence';
 
 const App: React.FC = () => {
-  const { t } = useTranslation();
-
   // Application State
   const [inputText, setInputText] = useState('');
-  const [translations, setTranslations] = useState<TranslationResult[]>([]);
-  const [status, setStatus] = useState<AppStatus>(AppStatus.IDLE);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [settingsLoaded, setSettingsLoaded] = useState(false);
   const settingsInitialized = useRef(false);
-
-  // Target Languages State (Persisted)
-  const [targetLanguages, setTargetLanguages] = useState<string[]>(() => {
-    const saved = localStorage.getItem('ai-translator-target-languages');
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          return parsed;
-        }
-      } catch (e) {
-        console.error("Failed to parse target languages", e);
-      }
-    }
-    return DEFAULT_LANGUAGES;
-  });
+  const [targetLanguages, setTargetLanguages] = usePersistedTargetLanguages();
 
   // Settings State (async encrypted persistence)
   const [settings, setSettings] = useState<AppSettings>(EMPTY_INITIAL_SETTINGS);
@@ -84,56 +61,18 @@ const App: React.FC = () => {
     saveSettings();
   }, [settings, settingsLoaded]);
 
-  // Persist target languages
-  useEffect(() => {
-    localStorage.setItem('ai-translator-target-languages', JSON.stringify(targetLanguages));
-  }, [targetLanguages]);
-
   const languageModels = settings.languageModels || {};
-
-  const handleTranslate = async () => {
-    if (!inputText.trim()) return;
-
-    if (!activeModelMeta()) {
-      setIsSettingsOpen(true);
-      return;
-    }
-
-    setStatus(AppStatus.LOADING);
-    setTranslations([]); // Clear previous
-
-    try {
-      const allModels = getEnabledModels(settings.providers);
-
-      await executeTranslationFlow({
-        inputText,
-        targetLanguages,
-        languageModels,
-        activeModelKey: settings.activeModelKey,
-        enabledModels: allModels,
-        onResult: setTranslations,
-      });
-
-      setStatus(AppStatus.SUCCESS);
-    } catch (error) {
-      console.error(error);
-      setStatus(AppStatus.ERROR);
-      alert(t('errors.translationFailed', { error: error instanceof Error ? error.message : t('errors.unknown') }));
-    }
-  };
-
-  const getLanguageConfig = (langName: string, langCode: string) => {
-    if (LANGUAGE_CONFIGS[langName]) return LANGUAGE_CONFIGS[langName];
-    const found = Object.values(LANGUAGE_CONFIGS).find(c => c.code === langCode);
-    if (found) return found;
-    return {
-      name: langName,
-      code: langCode,
-      color: '#64748b',
-      bgColor: '#f1f5f9',
-      borderColor: '#e2e8f0',
-    };
-  };
+  const enabledModels = getEnabledModels(settings.providers);
+  const currentModel = getActiveModelMeta(enabledModels, settings.activeModelKey);
+  const { status, translations, translate } = useTranslationRunner({
+    targetLanguages,
+    languageModels,
+    activeModelKey: settings.activeModelKey,
+    enabledModels,
+    hasActiveModel: Boolean(currentModel),
+    onMissingModel: () => setIsSettingsOpen(true),
+    onError: (message) => alert(message),
+  });
 
   const handleSettingsSave = (newSettings: AppSettings) => {
     setSettings(normalizeActiveModelKey(newSettings));
@@ -155,9 +94,6 @@ const App: React.FC = () => {
     });
   };
 
-  const enabledModels = getEnabledModels(settings.providers);
-  const currentModel = getActiveModelMeta(enabledModels, settings.activeModelKey);
-
   return (
     <div className="flex flex-col h-[100dvh] overflow-hidden md:overflow-hidden">
       <Header
@@ -178,7 +114,9 @@ const App: React.FC = () => {
             onInputChange={setInputText}
             targetLanguages={targetLanguages}
             onLanguagesChange={setTargetLanguages}
-            onTranslate={handleTranslate}
+            onTranslate={() => {
+              void translate(inputText);
+            }}
             status={status}
             availableModels={enabledModels}
             languageModels={languageModels}
@@ -186,50 +124,13 @@ const App: React.FC = () => {
             defaultModelId={settings.activeModelKey}
           />
 
-          {/* RIGHT: Output Area */}
-          <div className="flex flex-col w-full md:w-1/2 md:h-full bg-background p-3 sm:p-6 md:pl-4 md:overflow-y-auto">
-            <div className="flex flex-col gap-3 sm:gap-4 pb-6 md:pb-20">
-
-              {status === AppStatus.IDLE && translations.length === 0 && (
-                <div className="flex flex-col items-center justify-center h-40 sm:h-64 text-muted-foreground">
-                  <div className="size-12 sm:size-16 rounded-full bg-muted flex items-center justify-center mb-3 sm:mb-4">
-                    <span className="material-symbols-outlined text-2xl sm:text-3xl">translate</span>
-                  </div>
-                  <p className="text-sm font-medium">{t('translation.output.emptyTitle')}</p>
-                  <p className="text-xs text-muted-foreground/70 mt-1">{t('translation.output.emptySubtitle')}</p>
-                </div>
-              )}
-
-              {/* Group translations by language and render TranslationGroup */}
-              {(() => {
-                const grouped = groupTranslationsByLanguage(translations);
-
-                return grouped.map((group) => (
-                  <TranslationGroup
-                    key={group.language}
-                    results={group.results}
-                    config={getLanguageConfig(group.language, group.results[0]?.code || '')}
-                    totalLanguages={grouped.length}
-                    expectedCount={getExpectedCountForLanguage(group.language, languageModels, enabledModels)}
-                  />
-                ));
-              })()}
-
-              {/* Placeholder skeletons for remaining translations */}
-              {status === AppStatus.LOADING && (() => {
-                const expectedCount = getExpectedTranslationCount(targetLanguages, languageModels, enabledModels);
-                const remaining = expectedCount - translations.length;
-                if (remaining <= 0) return null;
-                return Array.from({ length: remaining }).map((_, i) => (
-                  <div key={`skeleton-${i}`} className="bg-card rounded-xl p-3 sm:p-5 border border-border animate-pulse">
-                    <div className="h-4 w-20 bg-muted rounded mb-3"></div>
-                    <div className="h-5 w-3/4 bg-muted rounded mb-2"></div>
-                    <div className="h-5 w-1/2 bg-muted rounded"></div>
-                  </div>
-                ));
-              })()}
-            </div>
-          </div>
+          <TranslationOutputPanel
+            status={status}
+            translations={translations}
+            targetLanguages={targetLanguages}
+            languageModels={languageModels}
+            enabledModels={enabledModels}
+          />
         </div>
       </main>
 

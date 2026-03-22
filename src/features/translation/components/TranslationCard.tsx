@@ -1,14 +1,14 @@
 import React, { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { TranslationResult, LanguageConfig } from '../types'
-import { Card } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { Card } from '@/components/ui/card'
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip'
-import { Badge } from '@/components/ui/badge'
+import { LanguageConfig, TranslationResult } from '@/types'
 
 interface TranslationCardProps {
   data: TranslationResult
@@ -49,7 +49,6 @@ const TranslationCard: React.FC<TranslationCardProps> = ({
 
   return (
     <Card className="group relative flex flex-row overflow-hidden hover:shadow-md hover:border-primary/30 transition-all duration-200 p-0 gap-0">
-      {/* Left Color Bar */}
       <div
         className="w-1 sm:w-1.5 shrink-0"
         style={{ backgroundColor: config.color }}
@@ -57,17 +56,13 @@ const TranslationCard: React.FC<TranslationCardProps> = ({
       <div className="flex-1 p-3 sm:p-5">
         <div className="flex justify-between items-start mb-2 sm:mb-3">
           <div className="flex items-center gap-2">
-
             <span className="font-semibold text-sm text-foreground">
               {data.language}
             </span>
           </div>
-
         </div>
 
-        {/* Toolbar: Model Info & Actions */}
         <div className="flex items-center justify-between gap-2 mb-2">
-          {/* Left: Model Info */}
           <div className="flex gap-2 items-center flex-wrap">
             {data.modelName && (
               <Badge
@@ -92,7 +87,6 @@ const TranslationCard: React.FC<TranslationCardProps> = ({
             )}
           </div>
 
-          {/* Right: Actions */}
           <div className="flex gap-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
             <Tooltip>
               <TooltipTrigger asChild>
@@ -159,7 +153,6 @@ const TranslationCard: React.FC<TranslationCardProps> = ({
           </div>
         </div>
 
-        {/* Error State */}
         {data.error ? (
           <div className="flex items-start gap-2 p-3 rounded-lg bg-destructive/10 border border-destructive/20">
             <span className="material-symbols-outlined text-destructive shrink-0" style={{ fontSize: '20px' }}>
@@ -174,7 +167,6 @@ const TranslationCard: React.FC<TranslationCardProps> = ({
           <>
             {isVisible ? (
               <>
-                {/* Text Content with Collapse Logic */}
                 <div className="relative">
                   <p
                     className={`text-base leading-relaxed text-foreground whitespace-pre-wrap ${isCollapsed ? 'line-clamp-6' : ''
@@ -183,13 +175,11 @@ const TranslationCard: React.FC<TranslationCardProps> = ({
                     {data.text}
                   </p>
 
-                  {/* Gradient Overlay when collapsed */}
                   {isCollapsed && (
                     <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-card to-transparent pointer-events-none" />
                   )}
                 </div>
 
-                {/* Expand/Collapse Button */}
                 {shouldEnableCollapse && (
                   <Button
                     variant="ghost"
@@ -220,8 +210,6 @@ const TranslationCard: React.FC<TranslationCardProps> = ({
             )}
           </>
         )}
-
-
       </div>
     </Card>
   )

@@ -1,10 +1,9 @@
 import React from 'react'
 import { useTranslation } from 'react-i18next'
-import { TranslationResult, LanguageConfig } from '../types'
-import TranslationCard from './TranslationCard'
 import { Card } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
-import { cn } from '@/lib/utils'
+import { LanguageConfig, TranslationResult } from '@/types'
+import TranslationCard from './TranslationCard'
 
 interface TranslationGroupProps {
     results: TranslationResult[]
@@ -27,7 +26,7 @@ const TranslationGroup: React.FC<TranslationGroupProps> = ({
     const { t } = useTranslation()
 
     // Single result: just render TranslationCard directly
-    // ONLY downgrade if we EXPECT exactly 1 result, otherwise keep the group UI for consistency 
+    // ONLY downgrade if we EXPECT exactly 1 result, otherwise keep the group UI for consistency
     // even while waiting for other results
     if (expectedCount === 1 && results.length === 1) {
         return (
@@ -41,13 +40,11 @@ const TranslationGroup: React.FC<TranslationGroupProps> = ({
 
     return (
         <Card className="group relative flex flex-row overflow-hidden hover:shadow-md hover:border-primary/30 transition-all duration-200 p-0 gap-0">
-            {/* Left Color Bar */}
             <div
                 className="w-1 sm:w-1.5 shrink-0"
                 style={{ backgroundColor: config.color }}
             />
             <div className="flex-1 flex flex-col min-w-0">
-                {/* Common Header for Language */}
                 <div className="flex items-center justify-between px-3 sm:px-5 py-2 sm:py-3 border-b border-border bg-muted/30">
                     <div className="flex items-center gap-2">
                         <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium uppercase bg-secondary text-secondary-foreground">
@@ -72,7 +69,6 @@ const TranslationGroup: React.FC<TranslationGroupProps> = ({
     )
 }
 
-// Internal component for rendering the result content
 const COLLAPSE_THRESHOLD = 200
 
 const ResultContent: React.FC<{ result: TranslationResult, t: any, totalCount: number, index: number, totalLanguages: number }> = ({ result, t, totalCount, index, totalLanguages }) => {
@@ -85,8 +81,6 @@ const ResultContent: React.FC<{ result: TranslationResult, t: any, totalCount: n
 
     return (
         <div className="flex flex-col h-full animate-in fade-in-50 duration-200 slide-in-from-left-1">
-
-
             {result.error ? (
                 <div className="mt-2 flex items-start gap-2 p-3 rounded-lg bg-destructive/10 border border-destructive/20">
                     <span className="material-symbols-outlined text-destructive shrink-0" style={{ fontSize: '20px' }}>
@@ -99,11 +93,8 @@ const ResultContent: React.FC<{ result: TranslationResult, t: any, totalCount: n
                 </div>
             ) : (
                 <div className="relative">
-                    {/* Toolbar: Model Info & Actions */}
                     <div className="flex items-center justify-between gap-2 mb-2">
-                        {/* Left: Model Info */}
                         <div className="flex items-center gap-2 flex-wrap opacity-80">
-                            {/* Model Badge */}
                             <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-muted text-muted-foreground border border-border/50">
                                 <span className="text-[10px] font-medium">{result.modelName || 'Unknown'}</span>
                             </div>
@@ -124,7 +115,6 @@ const ResultContent: React.FC<{ result: TranslationResult, t: any, totalCount: n
                             )}
                         </div>
 
-                        {/* Right: Actions */}
                         <div className="flex gap-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity z-10">
                             <button
                                 className="inline-flex items-center justify-center h-7 w-7 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-colors cursor-pointer"
@@ -183,13 +173,11 @@ const ResultContent: React.FC<{ result: TranslationResult, t: any, totalCount: n
                                 <p className={`text-base leading-relaxed text-foreground whitespace-pre-wrap animate-in fade-in zoom-in-95 duration-200 ${isCollapsed ? 'line-clamp-6' : ''}`}>
                                     {result.text}
                                 </p>
-                                {/* Gradient Overlay when collapsed */}
                                 {isCollapsed && (
                                     <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-card to-transparent pointer-events-none" />
                                 )}
                             </div>
 
-                            {/* Expand/Collapse Button */}
                             {shouldEnableCollapse && (
                                 <button
                                     onClick={() => setIsExpanded(!isExpanded)}
@@ -219,8 +207,6 @@ const ResultContent: React.FC<{ result: TranslationResult, t: any, totalCount: n
                     )}
                 </div>
             )}
-
-
         </div>
     )
 }

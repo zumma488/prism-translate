@@ -560,7 +560,7 @@ UI 多语言资源包括：
 - `src/components/SettingsModal.tsx`
 - `src/components/settings/EditProviderView.tsx`
 - `src/components/TranslationInput.tsx`
-- `src/components/TranslationGroup.tsx`
+- `src/features/translation/components/TranslationGroup.tsx`
 
 ## 21. 相关文档建议
 

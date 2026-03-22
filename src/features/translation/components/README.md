@@ -26,10 +26,16 @@
 
 ## 当前代码映射
 
-当前项目里，对应实现主要还在：
+当前项目里，对应实现还分布在：
 - `src/components/TranslationInput.tsx`
-- `src/components/TranslationGroup.tsx`
-- `src/components/TranslationCard.tsx`
+
+当前已落入本目录：
+- `TranslationOutputPanel.tsx`
+  - 承载翻译结果区域的分组展示、空态和加载骨架
+- `TranslationGroup.tsx`
+  - 承载按语言分组后的结果展示，并在单结果场景下降级渲染卡片
+- `TranslationCard.tsx`
+  - 承载单条翻译结果展示与复制、朗读、隐藏、折叠等交互
 
 ## 约束
 

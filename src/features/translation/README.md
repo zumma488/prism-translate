@@ -46,8 +46,8 @@
 - `src/App.tsx`
 - `src/features/translation/services/translationOrchestrator.ts`
 - `src/components/TranslationInput.tsx`
-- `src/components/TranslationGroup.tsx`
-- `src/components/TranslationCard.tsx`
+- `src/features/translation/components/TranslationGroup.tsx`
+- `src/features/translation/components/TranslationCard.tsx`
 - `src/constants.ts`
 - `src/types.ts`
 - `src/services/llmService/index.ts`
