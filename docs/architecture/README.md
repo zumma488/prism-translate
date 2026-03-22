@@ -11,6 +11,7 @@
 - 下级文档：
   - `./PROJECT_ANALYSIS.md`
   - `./TARGET_ARCHITECTURE.md`
+  - `./ROADMAP.md`
   - `../../src/README.md`
   - `../../src/features/README.md`
   - `../../src/services/README.md`
@@ -18,8 +19,8 @@
   - `../../src/config/README.md`
   - `../../src/i18n/README.md`
 - 平级相关文档：
-  - `./AGENT.md`（未来）
-  - `./ROADMAP.md`（可选）
+  - `../../AGENT.md`
+  - `./SESSION_HANDOFF.md`
 
 ## 文档职责
 
@@ -29,6 +30,10 @@
   - 记录当前项目现状、问题、要求
 - `TARGET_ARCHITECTURE.md`
   - 记录目标架构、目标骨架、推荐演进方向
+- `ROADMAP.md`
+  - 记录从当前状态演进到目标架构的推荐顺序与阶段优先级
+- `SESSION_HANDOFF.md`
+  - 记录当前阶段的交接信息，帮助新会话快速续上
 - `README.md`（本文档）
   - 作为顶层索引，告诉 AI agent 和开发者该从哪里进入、往哪里继续查
 
@@ -41,6 +46,14 @@
 ### 如果你想看“项目以后应该变成什么”
 再读：
 - `./TARGET_ARCHITECTURE.md`
+
+### 如果你想看“应该按什么顺序演进”
+继续读：
+- `./ROADMAP.md`
+
+### 如果你想接手上一会话继续做
+先读：
+- `./SESSION_HANDOFF.md`
 
 ### 如果你想落到代码目录理解模块边界
 继续读：
