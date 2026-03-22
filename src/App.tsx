@@ -6,29 +6,22 @@ import TranslationGroup from './components/TranslationGroup';
 import TranslationInput from './components/TranslationInput';
 import { translateText } from './services/llmService';
 import { LANGUAGE_CONFIGS, DEFAULT_LANGUAGES } from './constants';
-import { AppSettings, TranslationResult, AppStatus, ProviderConfig } from './types';
-import { encrypt, decrypt, isEncrypted } from './services/crypto';
-
-const STORAGE_KEY_V3 = 'ai-translator-settings-v3';
-const STORAGE_KEY_V2 = 'ai-translator-settings-v2';
-
-const EMPTY_INITIAL_SETTINGS: AppSettings = {
-  activeModelKey: '',
-  providers: [],
-  languageModels: {}
-};
-
-// Migrate old languageModels format (Record<string, string>) to new (Record<string, string[]>)
-function migrateLanguageModels(parsed: Record<string, unknown>) {
-  if (parsed.languageModels && typeof parsed.languageModels === 'object') {
-    const lm = parsed.languageModels as Record<string, unknown>;
-    for (const [lang, val] of Object.entries(lm)) {
-      if (typeof val === 'string') {
-        lm[lang] = [val];
-      }
-    }
-  }
-}
+import { AppSettings, TranslationResult, AppStatus } from './types';
+import {
+  buildTranslationTasks,
+  getActiveModelMeta,
+  getEnabledModels,
+  getExpectedCountForLanguage,
+  getExpectedTranslationCount,
+  groupTranslationsByLanguage,
+  sortTranslationResults,
+} from './features/translation/services/translationOrchestrator';
+import {
+  EMPTY_INITIAL_SETTINGS,
+  loadPersistedSettings,
+  normalizeActiveModelKey,
+  persistSettings,
+} from './features/settings/services/settingsPersistence';
 
 const App: React.FC = () => {
   const { t } = useTranslation();
@@ -64,52 +57,8 @@ const App: React.FC = () => {
   useEffect(() => {
     async function loadSettings() {
       try {
-        // Try v3 (encrypted) first
-        const v3Data = localStorage.getItem(STORAGE_KEY_V3);
-        if (v3Data) {
-          if (isEncrypted(v3Data)) {
-            try {
-              const decrypted = await decrypt(v3Data);
-              const parsed = JSON.parse(decrypted);
-              migrateLanguageModels(parsed);
-              setSettings(parsed);
-            } catch (err) {
-              console.error('Decryption failed, resetting settings:', err);
-              // Corrupted data or key mismatch - clear it so we don't crash next time
-              localStorage.removeItem(STORAGE_KEY_V3);
-              setSettings(EMPTY_INITIAL_SETTINGS);
-            }
-          } else {
-            // Fallback: v3 key exists but not encrypted (shouldn't happen)
-            try {
-              setSettings(JSON.parse(v3Data));
-            } catch (e) {
-              console.error('Failed to parse plaintext v3 settings', e);
-              localStorage.removeItem(STORAGE_KEY_V3);
-            }
-          }
-          setSettingsLoaded(true);
-          return;
-        }
-
-        // Migrate from v2 (plaintext) to v3 (encrypted)
-        const v2Data = localStorage.getItem(STORAGE_KEY_V2);
-        if (v2Data) {
-          try {
-            const parsed = JSON.parse(v2Data);
-            migrateLanguageModels(parsed);
-            setSettings(parsed);
-            // Encrypt and save to v3
-            const encrypted = await encrypt(JSON.stringify(parsed));
-            localStorage.setItem(STORAGE_KEY_V3, encrypted);
-            // Remove old v2 key
-            localStorage.removeItem(STORAGE_KEY_V2);
-          } catch (e) {
-            console.error('Failed to migrate v2 settings', e);
-          }
-        }
-      } catch (e) {
-        console.error('Failed to load encrypted settings', e);
+        const loadedSettings = await loadPersistedSettings();
+        setSettings(loadedSettings);
       } finally {
         setSettingsLoaded(true);
       }
@@ -129,8 +78,7 @@ const App: React.FC = () => {
 
     async function saveSettings() {
       try {
-        const encrypted = await encrypt(JSON.stringify(settings));
-        localStorage.setItem(STORAGE_KEY_V3, encrypted);
+        await persistSettings(settings);
       } catch (e) {
         console.error('Failed to encrypt and save settings', e);
       }
@@ -143,43 +91,7 @@ const App: React.FC = () => {
     localStorage.setItem('ai-translator-target-languages', JSON.stringify(targetLanguages));
   }, [targetLanguages]);
 
-  // Use a derived list of enabled models for the dropdown
-  const getEnabledModels = () => {
-    const allModels: { provider: ProviderConfig, modelId: string, modelName: string, uniqueId: string, providerName: string }[] = [];
-    settings.providers.forEach(p => {
-      p.models.forEach(m => {
-        if (m.enabled !== false) {
-          allModels.push({
-            provider: p,
-            modelId: m.id,
-            modelName: m.name,
-            uniqueId: `${p.id}:${m.id}`,
-            providerName: p.name
-          });
-        }
-      });
-    });
-    return allModels;
-  };
-
-  const activeModelMeta = () => {
-    const all = getEnabledModels();
-    return all.find(m => m.uniqueId === settings.activeModelKey) || all[0];
-  };
-
-  // Calculate the total expected translation count for skeleton display
-  const getExpectedTranslationCount = () => {
-    const allModels = getEnabledModels();
-    return targetLanguages.reduce((total, lang) => {
-      const langModels = settings.languageModels?.[lang];
-      if (langModels && langModels.length > 0) {
-        // Count only models that actually exist
-        const validCount = langModels.filter(key => allModels.some(m => m.uniqueId === key)).length;
-        return total + (validCount || 1); // Fallback to 1 if none valid
-      }
-      return total + 1; // Default model
-    }, 0);
-  };
+  const languageModels = settings.languageModels || {};
 
   const handleTranslate = async () => {
     if (!inputText.trim()) return;
@@ -193,20 +105,8 @@ const App: React.FC = () => {
     setTranslations([]); // Clear previous
 
     try {
-      const allModels = getEnabledModels();
-
-      // Build a flat list of (language, model) pairs
-      const tasks: { lang: string; modelKey: string }[] = [];
-      targetLanguages.forEach(lang => {
-        const langModelKeys = settings.languageModels?.[lang];
-        if (langModelKeys && langModelKeys.length > 0) {
-          // Multi-model: one task per model
-          langModelKeys.forEach(key => tasks.push({ lang, modelKey: key }));
-        } else {
-          // Single default model
-          tasks.push({ lang, modelKey: settings.activeModelKey });
-        }
-      });
+      const allModels = getEnabledModels(settings.providers);
+      const tasks = buildTranslationTasks(targetLanguages, languageModels, settings.activeModelKey);
 
       // Create independent translation tasks
       const translationTasks = tasks.map(async ({ lang, modelKey }) => {
@@ -234,18 +134,7 @@ const App: React.FC = () => {
             };
 
             // Progressive update - append result immediately
-            setTranslations(prev => {
-              const newResults = [...prev, enrichedResult];
-              // Sort by language order, then by model order within same language
-              return newResults.sort((a, b) => {
-                const langDiff = targetLanguages.indexOf(a.language) - targetLanguages.indexOf(b.language);
-                if (langDiff !== 0) return langDiff;
-                // Within same language, sort by model key order in tasks
-                const aIdx = tasks.findIndex(t => t.lang === a.language && allModels.find(m => m.uniqueId === t.modelKey)?.modelName === a.modelName);
-                const bIdx = tasks.findIndex(t => t.lang === b.language && allModels.find(m => m.uniqueId === t.modelKey)?.modelName === b.modelName);
-                return aIdx - bIdx;
-              });
-            });
+            setTranslations((prev) => sortTranslationResults([...prev, enrichedResult], targetLanguages, tasks, allModels));
 
             return enrichedResult;
           }
@@ -261,12 +150,7 @@ const App: React.FC = () => {
             providerName: meta.providerName || meta.provider.name,
             error: err instanceof Error ? err.message : String(err),
           };
-          setTranslations(prev => {
-            const newResults = [...prev, errorResult];
-            return newResults.sort((a, b) =>
-              targetLanguages.indexOf(a.language) - targetLanguages.indexOf(b.language)
-            );
-          });
+          setTranslations((prev) => sortTranslationResults([...prev, errorResult], targetLanguages, tasks, allModels));
         }
 
         return null;
@@ -296,17 +180,7 @@ const App: React.FC = () => {
   };
 
   const handleSettingsSave = (newSettings: AppSettings) => {
-    setSettings(newSettings);
-    // Don't close setup immediately if no models? No, assume user knows.
-    // Ensure active model is valid
-    const all = [];
-    newSettings.providers.forEach(p => p.models.forEach(m => {
-      if (m.enabled !== false) all.push(`${p.id}:${m.id}`);
-    }));
-
-    if (!all.includes(newSettings.activeModelKey) && all.length > 0) {
-      setSettings(s => ({ ...s, activeModelKey: all[0] }));
-    }
+    setSettings(normalizeActiveModelKey(newSettings));
   };
 
   const handleModelSelect = (uniqueId: string) => {
@@ -315,7 +189,7 @@ const App: React.FC = () => {
 
   const handleLanguageModelChange = (lang: string, modelIds: string[]) => {
     setSettings(prev => {
-      const newLanguageModels = { ...prev.languageModels };
+      const newLanguageModels = { ...(prev.languageModels || {}) };
       if (modelIds.length > 0) {
         newLanguageModels[lang] = modelIds;
       } else {
@@ -325,8 +199,8 @@ const App: React.FC = () => {
     });
   };
 
-  const enabledModels = getEnabledModels();
-  const currentModel = activeModelMeta();
+  const enabledModels = getEnabledModels(settings.providers);
+  const currentModel = getActiveModelMeta(enabledModels, settings.activeModelKey);
 
   return (
     <div className="flex flex-col h-[100dvh] overflow-hidden md:overflow-hidden">
@@ -351,7 +225,7 @@ const App: React.FC = () => {
             onTranslate={handleTranslate}
             status={status}
             availableModels={enabledModels}
-            languageModels={settings.languageModels || {}}
+            languageModels={languageModels}
             onLanguageModelChange={handleLanguageModelChange}
             defaultModelId={settings.activeModelKey}
           />
@@ -372,47 +246,22 @@ const App: React.FC = () => {
 
               {/* Group translations by language and render TranslationGroup */}
               {(() => {
-                // Group translations by language, maintaining order
-                const grouped: { language: string; results: typeof translations }[] = [];
-                const seen = new Set<string>();
-                translations.forEach(result => {
-                  if (!seen.has(result.language)) {
-                    seen.add(result.language);
-                    grouped.push({
-                      language: result.language,
-                      results: translations.filter(r => r.language === result.language),
-                    });
-                  }
-                });
+                const grouped = groupTranslationsByLanguage(translations);
 
-                return grouped.map((group) => {
-                  // Calculate expected count for this specific language
-                  const langModels = settings.languageModels?.[group.language];
-                  let expectedCount = 1; // Default
-
-                  if (langModels && langModels.length > 0) {
-                    // Count only models that actually exist
-                    const validCount = langModels.filter(key =>
-                      enabledModels.some(m => m.uniqueId === key)
-                    ).length;
-                    expectedCount = validCount || 1;
-                  }
-
-                  return (
-                    <TranslationGroup
-                      key={group.language}
-                      results={group.results}
-                      config={getLanguageConfig(group.language, group.results[0]?.code || '')}
-                      totalLanguages={grouped.length}
-                      expectedCount={expectedCount}
-                    />
-                  );
-                });
+                return grouped.map((group) => (
+                  <TranslationGroup
+                    key={group.language}
+                    results={group.results}
+                    config={getLanguageConfig(group.language, group.results[0]?.code || '')}
+                    totalLanguages={grouped.length}
+                    expectedCount={getExpectedCountForLanguage(group.language, languageModels, enabledModels)}
+                  />
+                ));
               })()}
 
               {/* Placeholder skeletons for remaining translations */}
               {status === AppStatus.LOADING && (() => {
-                const expectedCount = getExpectedTranslationCount();
+                const expectedCount = getExpectedTranslationCount(targetLanguages, languageModels, enabledModels);
                 const remaining = expectedCount - translations.length;
                 if (remaining <= 0) return null;
                 return Array.from({ length: remaining }).map((_, i) => (

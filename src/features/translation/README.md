@@ -44,6 +44,7 @@
 
 在当前项目实现里，这个 feature 的职责主要分散在：
 - `src/App.tsx`
+- `src/features/translation/services/translationOrchestrator.ts`
 - `src/components/TranslationInput.tsx`
 - `src/components/TranslationGroup.tsx`
 - `src/components/TranslationCard.tsx`
