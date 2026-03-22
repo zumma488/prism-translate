@@ -4,18 +4,16 @@ import Header from './components/Header';
 import SettingsModal from './components/SettingsModal';
 import TranslationGroup from './components/TranslationGroup';
 import TranslationInput from './components/TranslationInput';
-import { translateText } from './services/llmService';
 import { LANGUAGE_CONFIGS, DEFAULT_LANGUAGES } from './constants';
 import { AppSettings, TranslationResult, AppStatus } from './types';
 import {
-  buildTranslationTasks,
   getActiveModelMeta,
   getEnabledModels,
   getExpectedCountForLanguage,
   getExpectedTranslationCount,
   groupTranslationsByLanguage,
-  sortTranslationResults,
 } from './features/translation/services/translationOrchestrator';
+import { executeTranslationFlow } from './features/translation/services/translationExecutionService';
 import {
   EMPTY_INITIAL_SETTINGS,
   loadPersistedSettings,
@@ -106,58 +104,16 @@ const App: React.FC = () => {
 
     try {
       const allModels = getEnabledModels(settings.providers);
-      const tasks = buildTranslationTasks(targetLanguages, languageModels, settings.activeModelKey);
 
-      // Create independent translation tasks
-      const translationTasks = tasks.map(async ({ lang, modelKey }) => {
-        const meta = allModels.find(m => m.uniqueId === modelKey);
-
-        if (!meta) {
-          console.warn(`Model not found for key: ${modelKey}, skipping language: ${lang}`);
-          return null;
-        }
-
-        try {
-          const results = await translateText({
-            text: inputText,
-            targetLanguages: [lang],
-            provider: meta.provider,
-            modelId: meta.modelId
-          });
-
-          const result = results[0];
-          if (result) {
-            const enrichedResult = {
-              ...result,
-              modelName: meta.modelName,
-              providerName: meta.providerName || meta.provider.name
-            };
-
-            // Progressive update - append result immediately
-            setTranslations((prev) => sortTranslationResults([...prev, enrichedResult], targetLanguages, tasks, allModels));
-
-            return enrichedResult;
-          }
-        } catch (err) {
-          console.error(`Translation failed for ${lang} with model ${modelKey}:`, err);
-          const errorResult: TranslationResult = {
-            language: lang,
-            code: '',
-            text: '',
-            tone: '',
-            confidence: 0,
-            modelName: meta.modelName,
-            providerName: meta.providerName || meta.provider.name,
-            error: err instanceof Error ? err.message : String(err),
-          };
-          setTranslations((prev) => sortTranslationResults([...prev, errorResult], targetLanguages, tasks, allModels));
-        }
-
-        return null;
+      await executeTranslationFlow({
+        inputText,
+        targetLanguages,
+        languageModels,
+        activeModelKey: settings.activeModelKey,
+        enabledModels: allModels,
+        onResult: setTranslations,
       });
 
-      // Wait for all translations to settle
-      await Promise.all(translationTasks);
       setStatus(AppStatus.SUCCESS);
     } catch (error) {
       console.error(error);
