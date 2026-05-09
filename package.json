@@ -53,7 +53,7 @@
     "@ai-sdk/fireworks": "^2.0.52",
     "@ai-sdk/google": "^3.0.21",
     "@ai-sdk/groq": "^3.0.39",
-    "@ai-sdk/mistral": "^3.0.18",
+    "@ai-sdk/mistral": "^3.0.36",
     "@ai-sdk/openai": "^3.0.25",
     "@ai-sdk/perplexity": "^3.0.33",
     "@ai-sdk/togetherai": "^2.0.51",
