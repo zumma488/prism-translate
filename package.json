@@ -49,7 +49,7 @@
     "@ai-sdk/cerebras": "^2.0.30",
     "@ai-sdk/cohere": "^3.0.18",
     "@ai-sdk/deepinfra": "^2.0.31",
-    "@ai-sdk/deepseek": "^2.0.17",
+    "@ai-sdk/deepseek": "^2.0.34",
     "@ai-sdk/fireworks": "^2.0.52",
     "@ai-sdk/google": "^3.0.21",
     "@ai-sdk/groq": "^3.0.39",
