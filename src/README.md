@@ -1,69 +1,67 @@
-# src 目录说明
+[简体中文](./README.zh.md) | **English**
 
-## 模块定位
+# `src/` Directory
 
-`src/` 是当前应用的主代码目录，承载客户端界面、业务 feature、共享静态配置、国际化资源、通用工具以及服务端专用模块。
+## Purpose
 
-## 文档层级
+`src/` is the main application code directory for the client-facing part of Prism Translate. It contains UI orchestration, feature modules, reusable components, shared configuration, i18n resources, hooks, and general utilities.
 
-- 当前层级：代码根目录级 / src
-- 上级文档：
-  - `../docs/architecture/README.md`
-  - `../docs/architecture/PROJECT_ANALYSIS.md`
-  - `../docs/architecture/TARGET_ARCHITECTURE.md`
-- 下级文档：
-  - `./components/README.md`
-  - `./services/README.md`
-  - `./config/README.md`
-  - `./i18n/README.md`
-  - `./features/README.md`（目标骨架说明，当前目录未完全落地）
-  - `./server/config/README.md`
-- 平级相关文档：
-  - `./App.tsx`
-  - `./main.tsx`
-  - `./types.ts`
-  - `./constants.ts`
+The current repository uses a mixed structure:
+- `app/` owns App Router routes and API handlers.
+- `server/` owns server-side execution boundaries.
+- `src/` remains the main home for client logic and shared frontend code.
 
-## 当前目录职责
+## Current Responsibilities
 
-当前 `src/` 主要负责：
-- Next.js 页面客户端编排
-- 页面主编排
-- UI 组件
-- Provider / 模型配置定义
-- 配置持久化、加密解密
-- 服务端 LLM 调用封装
-- 服务端运行时配置
-- 国际化资源
+`src/` currently owns:
+- client UI composition
+- page-level orchestration in `App.tsx`
+- feature modules under `src/features/`
+- reusable UI components under `src/components/`
+- provider metadata and static configuration under `src/config/`
+- shared domain definitions that still partially live in `types.ts` and `constants.ts`
+- i18n resources under `src/i18n/`
+- frontend-facing hooks and utilities
 
-配置边界：
-- `src/constants.ts` 与 `src/config/` 只放客户端也能安全看到的静态配置。
-- `src/server/config/` 只放服务端运行时配置，如私钥加载、请求超时和未来的服务端开关。
-- 真实密钥文件放在 `.secrets/`，不要放进 `src/`。
+Configuration boundary:
+- `src/config/` and `src/constants.ts` only contain static data that is safe for the browser.
+- server-only runtime settings belong outside this directory.
+- real secrets must not be stored inside `src/`.
 
-## 当前结构特点
+## Out Of Scope
 
-当前项目已经并回 Next.js App Router。`app/` 负责路由、布局和 API Route Handlers，`src/` 继续承载主要业务代码。`App.tsx` 仍主要承担页面级编排，translation / settings 的主要业务编排分别下沉到 `src/features/translation/` 与 `src/features/settings/`。
+`src/` should not be treated as the owner of:
+- App Router route definitions
+- API route handlers
+- server-side provider proxy execution
+- private runtime secret files
 
-也就是说：
-- 现有代码已经完成 Phase 1 所要求的主要职责拆分，并引入 Next.js 服务端边界
-- 但整体目录仍未完全演化成目标骨架中的 `features / entities / integrations / pages` 分层
-- 这里既包含现有实现，也作为后续是否继续演进的起点
+Those belong in `app/`, `server/`, or external secret storage.
 
-## 阅读建议
+## Current Code Mapping
 
-### 如果你想理解当前 UI 结构
-看：
-- `./components/README.md`
+Important entry points around this directory:
+- `src/App.tsx`
+- `src/main.tsx`
+- `src/types.ts`
+- `src/constants.ts`
+- `src/features/`
+- `src/components/`
+- `src/services/`
+- `src/config/`
+- `src/i18n/`
 
-### 如果你想理解当前服务层与 LLM 接入
-看：
-- `./services/README.md`
+## Adjacent Modules
 
-### 如果你想理解 Provider 静态配置
-看：
-- `./config/README.md`
+- `../app/` provides routes, layout, and API handlers.
+- `../server/` provides translation and provider execution logic behind the API layer.
+- `./features/` defines business-oriented frontend capabilities.
+- `./services/` provides shared config and LLM access infrastructure.
 
-### 如果你想理解未来骨架如何映射到当前代码
-回看：
-- `../docs/architecture/TARGET_ARCHITECTURE.md`
+## Reading Guide
+
+- UI structure: `./components/README.md` or `./components/README.zh.md`
+- Business features: `./features/README.md` or `./features/README.zh.md`
+- Service layer: `./services/README.md` or `./services/README.zh.md`
+- Provider metadata: `./config/README.md` or `./config/README.zh.md`
+- i18n: `./i18n/README.md` or `./i18n/README.zh.md`

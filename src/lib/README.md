@@ -1,33 +1,37 @@
-# lib 目录说明
+[简体中文](./README.zh.md) | **English**
 
-## 模块定位
+# `src/lib/`
 
-`src/lib/` 是当前项目中的通用工具目录，用来承载与具体业务弱耦合的工具方法、辅助函数和基础能力。
+## Purpose
 
-## 文档层级
+`src/lib/` contains general-purpose utilities and helper functions that are only weakly coupled to specific business features.
 
-- 当前层级：通用工具层级 / lib
-- 上级文档：
-  - `../README.md`
-  - `../../docs/architecture/TARGET_ARCHITECTURE.md`
-- 下级文档：无
-- 平级相关文档：
-  - `../hooks/README.md`
-  - `../components/README.md`
-  - `../services/README.md`
+## Current Responsibilities
 
-## 模块职责
+This directory is suitable for:
+- formatting helpers
+- validation helpers
+- conversion utilities
+- small reusable support logic
 
-这里适合放：
-- 与业务弱耦合的工具函数
-- 格式化、校验、转换类工具
-- 多处可复用的小型基础逻辑
+## Out Of Scope
 
-## 非职责范围
+This directory should not become the long-term home for:
+- provider business rules
+- translation orchestration
+- settings migration/import-export core logic
 
-这里不应长期放：
-- Provider 业务规则
-- Translation 任务编排
-- Settings 迁移与导入导出主逻辑
+## Current Code Mapping
 
-这些应归入 feature / service / entity 等更明确的目录。
+This directory is the general utility layer adjacent to feature-specific hooks and services.
+
+## Adjacent Modules
+
+- `../hooks/` contains reusable React adaptation logic.
+- `../services/` contains heavier infrastructure concerns.
+- `../features/` contains business-specific logic.
+
+## Reading Guide
+
+- hooks: `../hooks/README.md` or `../hooks/README.zh.md`
+- services: `../services/README.md` or `../services/README.zh.md`

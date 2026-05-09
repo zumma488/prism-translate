@@ -1,31 +1,43 @@
-# settings components 说明
+[简体中文](./README.zh.md) | **English**
 
-## 文档层级
+# `src/components/settings/`
 
-- 当前层级：组件子模块级 / components.settings
-- 上级文档：
-  - `../README.md`
-  - `../../../src/features/settings/README.md`
-- 下级文档：无
-- 平级相关文档：
-  - `../../services/README.md`
-  - `../../features/provider-management/README.md`
+## Purpose
 
-## 模块定位
+This directory contains the current reusable settings-facing view components used by the settings workflow.
 
-这里存放当前项目中与设置界面直接相关的组件，例如：
+## Current Responsibilities
+
+Current files include:
 - `ConnectProviderView.tsx`
 - `EditProviderView.tsx`
 - `ManageModelsView.tsx`
 
-## 当前职责
+These components handle:
+- provider connection UI
+- provider edit UI
+- model fetch and selection UI
+- protocol selection UI for OpenAI and compatible providers
 
-- 承接设置 UI 交互
-- 展示 provider 编辑视图
-- 承接模型拉取与选择交互
-- 承接 OpenAI / OpenAI-compatible Provider 的协议选择交互（Responses / Chat Completions）
+## Out Of Scope
 
-## 约束
+This directory should not directly own:
+- settings migration logic
+- import/export core rules
+- provider SDK wiring
 
-- 这里应尽量承载界面行为，不应长期沉积完整配置领域逻辑。
-- 配置迁移、导入导出、加密等能力应更多落到 settings feature / services 中。
+## Current Code Mapping
+
+This directory is still one of the active implementation centers for the settings flow, alongside `src/features/settings/`.
+
+## Adjacent Modules
+
+- `../../features/settings/` owns settings workflow boundaries.
+- `../../features/provider-management/` owns provider-management rules.
+- `../../services/` owns shared config infrastructure.
+
+## Reading Guide
+
+- components overview: `../README.md` or `../README.zh.md`
+- settings feature: `../../features/settings/README.md` or `../../features/settings/README.zh.md`
+- provider management: `../../features/provider-management/README.md` or `../../features/provider-management/README.zh.md`

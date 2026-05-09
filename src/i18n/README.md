@@ -1,27 +1,35 @@
-# i18n 目录说明
+[简体中文](./README.zh.md) | **English**
 
-## 模块定位
+# `src/i18n/`
 
-`src/i18n/` 负责项目的界面国际化资源与国际化初始化逻辑。
+## Purpose
 
-## 文档层级
+`src/i18n/` contains UI internationalization resources and initialization logic.
 
-- 当前层级：国际化层级 / i18n
-- 上级文档：
-  - `../README.md`
-  - `../../docs/architecture/PROJECT_ANALYSIS.md`
-- 下级文档：无
-- 平级相关文档：
-  - `../components/README.md`
-  - `../features/translation/README.md`
+## Current Responsibilities
 
-## 当前目录职责
+This directory currently owns:
+- UI locale resource management
+- UI language switching support
+- separation between UI language and translation target language concepts
 
-- 管理 UI locale 资源
-- 负责界面语言切换相关支持
-- 区分“界面语言”和“翻译目标语言”两套体系
+## Out Of Scope
 
-## 实现约束
+This directory should not directly own:
+- translation result content
+- provider/model logic
+- settings persistence rules
 
-- UI locale 不能和 translation target languages 混用。
-- 国际化资源应保持独立，不应混入翻译业务逻辑。
+## Current Code Mapping
+
+This directory contains the frontend i18n setup used by the application UI.
+
+## Adjacent Modules
+
+- `../components/` consumes translated UI strings.
+- `../features/translation/` depends on the distinction between UI locale and translation target language.
+
+## Reading Guide
+
+- components: `../components/README.md` or `../components/README.zh.md`
+- translation feature: `../features/translation/README.md` or `../features/translation/README.zh.md`

@@ -1,47 +1,43 @@
-# provider-management feature 说明
+[简体中文](./README.zh.md) | **English**
 
-## 模块定位
+# `src/features/provider-management/`
 
-`src/features/provider-management/` 负责承接 Provider 生命周期相关的业务规则，包括 Provider 接入、Provider 元信息管理、模型拉取入口与 Provider 管理界面协同。
+## Purpose
 
-## 文档层级
+`src/features/provider-management/` owns provider lifecycle rules, onboarding guidance, and the coordination boundary between provider metadata, settings flows, and provider-specific management behavior.
 
-- 当前层级：模块级 / features.provider-management
-- 上级文档：
-  - `../README.md`
-  - `../../../docs/architecture/TARGET_ARCHITECTURE.md`
-- 下级文档：
-  - 未来可补：`./services/README.md`
-- 平级相关文档：
-  - `../settings/README.md`
-  - `../../config/README.md`
-  - `../../services/README.md`
-  - `../../entities/provider/README.md`
+## Current Responsibilities
 
-## 模块职责
+This module currently covers:
+- the connection between provider types and provider instances
+- provider onboarding rules
+- provider-related entry points when adding a new provider
+- coordination between provider settings UI and model-fetching flows
 
-这个模块应负责：
-- Provider 类型与实例配置之间的衔接
-- Provider 接入方式整理
-- 新增 Provider 时的业务接入入口说明
-- 模型拉取入口与 provider 设置界面的协同
+## Out Of Scope
 
-## 非职责范围
+This module should not directly own:
+- translation result rendering
+- page-level orchestration
+- low-level fetch or provider SDK implementation
 
-这个模块不应直接负责：
-- 翻译结果展示
-- 页面主编排
-- 最底层 fetch / SDK 调用细节
+## Current Code Mapping
 
-## 当前代码映射
-
-当前项目里，这部分职责主要散落在：
+Current behavior is still distributed across:
 - `src/config/models.ts`
 - `src/components/settings/EditProviderView.tsx`
 - `src/services/llmService/providers.ts`
+- `src/features/provider-management/services/`
 
-## 实现约束
+## Adjacent Modules
 
-- 新增 Provider 的改动路径应尽量固定。
-- Provider 管理和翻译结果展示不要直接耦合。
-- Provider 元信息与底层实例化逻辑应保持分层。
+- `../settings/` owns settings state and configuration flows.
+- `../../config/` owns static provider metadata.
+- `../../services/llmService/` owns low-level provider/model wiring.
+- `../../entities/provider/` documents provider-related stable models.
+
+## Reading Guide
+
+- provider-management services: `./services/README.md` or `./services/README.zh.md`
+- settings feature: `../settings/README.md` or `../settings/README.zh.md`
+- config metadata: `../../config/README.md` or `../../config/README.zh.md`

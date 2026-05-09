@@ -1,185 +1,164 @@
-# AI Translator Dashboard
+# Prism Translate
 
 <div align="center">
   <img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
 </div>
 
 <p align="center">
-  <em>A collaborative creation, fully developed by <b>AI Agents</b>.</em><br/>
-  <em>Co-developed by <b>Google Stitch</b>, <b>Google AI Studio</b>, and <b>Antigravity</b>.</em>
-</p>
-
-<p align="center">
   <a href="./README.zh.md">简体中文</a> | <b>English</b>
 </p>
 
-A modern AI-powered translation dashboard built with Next.js, React 19, TypeScript, and the Vercel AI SDK. This project integrates multiple AI providers (Google Gemini, OpenAI, etc.) to deliver high-quality translations in a sleek, responsive interface.
+Prism Translate is a multi-language, multi-model, multi-provider translation comparison workspace. One input can be translated by multiple models, target languages can bind to different model sets, and results are presented for side-by-side quality comparison.
 
 <p align="center">
   <a href="https://zumma488.github.io/prism-translate/"><b>Live Demo</b></a>
 </p>
 
-## ✨ Features
+## Features
 
-- **Multi-Model Translation Comparison**: Select multiple AI models per language and compare translations side-by-side in a clean vertical layout.
-- **Per-Language Model Selection**: Customize AI models for each target language independently, optimizing translation quality for different language pairs.
-- **Custom Base URL Support**: Configure custom Base URLs for any AI API provider, offering ultimate flexibility for proxy routing and custom enterprise endpoints.
-- **Multi-Model Support**: Seamlessly switch between Google Gemini, OpenAI, and other providers via Vercel AI SDK.
-- **Modern UI/UX**: Built with `shadcn/ui` and Tailwind CSS v4 for a premium, responsive design.
-- **Micro-Animations**: Enhanced user experience with `tw-animate-css`.
-- **Type-Safe**: Full TypeScript support for robust development.
-- **Global i18n Support**: UI available in 12 languages — Arabic, English, Spanish, Japanese, Korean, Burmese, Portuguese, Russian, Turkish, Vietnamese, Simplified Chinese, and Traditional Chinese.
+- Compare multiple model outputs for the same source text.
+- Bind different model sets to different target languages.
+- Configure hosted providers and OpenAI-compatible endpoints.
+- Manage provider settings, model lists, defaults, import/export, and persistence from the UI.
+- Run translation through Next.js API handlers with server-side provider/model orchestration.
+- Use a responsive UI with built-in i18n support.
 
-## 📸 Screenshots
+## Current Architecture
+
+The current codebase is a hybrid of active runtime structure and ongoing documentation-first refactor work.
+
+- `app/`
+  - Next.js App Router entrypoints.
+  - Owns route files, layout, global styles, and API route handlers such as `app/api/translate/stream/route.ts` and `app/api/providers/models/route.ts`.
+- `server/`
+  - Server-side translation, provider proxy, model, and orchestration code used behind API boundaries.
+- `src/`
+  - Client UI, feature modules, shared config, i18n, hooks, and reusable utilities.
+  - `src/features/translation/` owns translation workflow orchestration.
+  - `src/features/settings/` owns settings, persistence-facing state, and import/export flows.
+  - `src/features/provider-management/` owns provider onboarding and provider-management rules.
+- `src/services/`
+  - Shared infrastructure for config IO, crypto utilities, and LLM/provider access.
+- `src/components/`
+  - Reusable and still-not-fully-migrated UI components.
+
+This means the repository is no longer a simple client-only dashboard: the UI still owns browser-side settings, while translation and provider/model access now cross a server/API boundary.
+
+## Repository Navigation
+
+- Root entry: [`src/README.md`](src/README.md) / [`src/README.zh.md`](src/README.zh.md)
+- Features: [`src/features/README.md`](src/features/README.md) / [`src/features/README.zh.md`](src/features/README.zh.md)
+- Translation: [`src/features/translation/README.md`](src/features/translation/README.md) / [`src/features/translation/README.zh.md`](src/features/translation/README.zh.md)
+- Settings: [`src/features/settings/README.md`](src/features/settings/README.md) / [`src/features/settings/README.zh.md`](src/features/settings/README.zh.md)
+- Provider management: [`src/features/provider-management/README.md`](src/features/provider-management/README.md) / [`src/features/provider-management/README.zh.md`](src/features/provider-management/README.zh.md)
+- Services: [`src/services/README.md`](src/services/README.md) / [`src/services/README.zh.md`](src/services/README.zh.md)
+- Components: [`src/components/README.md`](src/components/README.md) / [`src/components/README.zh.md`](src/components/README.zh.md)
+- Entities: [`src/entities/README.md`](src/entities/README.md) / [`src/entities/README.zh.md`](src/entities/README.zh.md)
+
+## Runtime And Security Notes
+
+- Provider settings are stored in the current browser.
+- API keys and other provider secrets should be treated as sensitive.
+- Exported `.prism` files can contain those secrets and must be handled as sensitive files.
+- Do not describe the current browser storage model as enterprise-grade secret storage.
+- `src/config/` only contains static metadata that is safe to ship to the browser.
+- Server request handling and provider/model access live behind Next.js API routes and `server/` code.
+
+## Tech Stack
+
+- Next.js 16
+- React 19
+- TypeScript
+- Tailwind CSS v4
+- shadcn/ui
+- Vercel AI SDK and provider SDKs
+
+## Getting Started
+
+### Prerequisites
+
+- Node.js 18 or newer
+- npm
+
+### Install
+
+```bash
+git clone https://github.com/zumma488/prism-translate.git
+cd prism-translate
+npm install
+```
+
+### Optional environment override
+
+Copy `.env.example` to `.env.local` if you want to override the default upstream timeout.
+
+```bash
+cp .env.example .env.local
+```
+
+Example:
+
+```env
+REQUEST_TIMEOUT_MS=1800000
+```
+
+### Run locally
+
+```bash
+npm run dev
+```
+
+### Verification
+
+```bash
+npm run lint
+npm run build
+```
+
+## Deployment
+
+This repository is a standard Next.js app and is compatible with Vercel.
+
+Recommended settings:
+
+- Framework Preset: `Next.js`
+- Install Command: `npm install`
+- Build Command: `npm run build`
+- Output Directory: leave empty
+
+Operational notes:
+
+- `REQUEST_TIMEOUT_MS` is optional and controls upstream timeout in milliseconds.
+- Provider credentials are not sourced from Vercel environment variables by default; they are managed in the browser UI.
+- Very long translations can still hit platform execution limits if upstream providers respond too slowly.
+- Default local `ollama` endpoints are not directly usable on Vercel unless exposed through a reachable compatible endpoint.
+
+## Screenshots
 
 ### Dashboard
 
 ![Dashboard Desktop](docs/images/dashboard-desktop.png)
 
-### Mobile & Responsive
+### Mobile
 
 <p align="center">
   <img src="docs/images/dashboard-mobile.png" width="300" alt="Mobile View" />
 </p>
 
-### Model Management
+### Provider And Model Management
 
 |                  Connection                  |              Custom Provider               |             Model Selection              |
 | :------------------------------------------: | :----------------------------------------: | :--------------------------------------: |
 | ![Connect](docs/images/connect-provider.png) | ![Custom](docs/images/custom-provider.png) | ![Manage](docs/images/manage-models.png) |
 
-## 🌍 Supported Languages
+## CI
 
-| Language | Code | Native Name |
-|----------|------|-------------|
-| Arabic | `ar` | العربية |
-| English | `en` | English |
-| Spanish | `es` | Español |
-| Japanese | `ja` | 日本語 |
-| Korean | `ko` | 한국어 |
-| Burmese | `my` | မြန်မာ |
-| Portuguese | `pt` | Português |
-| Russian | `ru` | Русский |
-| Turkish | `tr` | Türkçe |
-| Vietnamese | `vi` | Tiếng Việt |
-| Chinese (Simplified) | `zh` | 简体中文 |
-| Chinese (Traditional) | `zh-TW` | 繁體中文 |
+The repository includes a `CI` workflow in `.github/workflows/ci.yml` that runs:
 
-## 🛠 Tech Stack
+- `npm install`
+- `npm run lint`
+- `npm run build`
 
-- **Framework**: Next.js + React 19 + TypeScript
-- **Styling**: Tailwind CSS v4
-- **Components**: shadcn/ui
-- **AI Integration**: Vercel AI SDK + Google Gemini + OpenAI
-- **Deployment**: Vercel-compatible hosting
+## License
 
-### AI Skills Reference
-
-The following AI Skills were used during development (general configuration, no need to sync with project):
-
-| Skill                | Purpose                                    |
-| -------------------- | ------------------------------------------ |
-| `shadcn-ui`          | shadcn/ui component library installation and usage guide |
-| `tailwind-v4-shadcn` | Tailwind v4 and shadcn/ui integration configuration |
-| `ai-sdk`             | Vercel AI SDK usage guide                  |
-| `ui-ux-pro-max`      | UI/UX design specifications and best practices |
-
-## 🚀 Getting Started
-
-### Prerequisites
-
-- Node.js (v18 or higher)
-- npm or pnpm
-
-### Installation
-
-1. Clone the repository:
-
-   ```bash
-   git clone https://github.com/zumma488/prism-translate.git
-   cd prism-translate
-   ```
-
-2. Install dependencies:
-
-   ```bash
-   npm install
-   ```
-
-3. Configure environment variables (Optional):
-   Copy `.env.example` to `.env.local` if you want to override the default request timeout.
-
-   ```bash
-   cp .env.example .env.local
-   ```
-
-   Example:
-
-   ```env
-   REQUEST_TIMEOUT_MS=1800000
-   ```
-
-   Provider API keys are configured in the app settings UI and stored in your current browser.
-
-## Configuration Storage
-
-- Provider configuration is stored in the current browser's local storage.
-- API keys and other provider secrets are stored in plain text in that local storage.
-- Exported `.prism` files also contain those secrets in plain JSON.
-- If you clear browser storage, switch browsers, or move to a new machine, keep your exported configuration file safe if you need to restore settings.
-
-4. Run the development server:
-
-   ```bash
-   npm run dev
-   ```
-
-## Deploying To Vercel
-
-This app is compatible with Vercel and passes `npm run build` as a standard Next.js deployment.
-
-Recommended project settings:
-
-- Framework Preset: `Next.js`
-- Build Command: `npm run build`
-- Install Command: `npm install`
-- Output Directory: leave empty
-
-Environment variables:
-
-- `REQUEST_TIMEOUT_MS`
-  - Optional.
-  - Controls upstream provider timeout in milliseconds.
-  - On Vercel, the app automatically caps this below the function duration to reduce hard timeouts.
-
-Operational notes:
-
-- Provider credentials are stored in each user's browser `localStorage`, not in Vercel environment variables.
-- The translation API runs as a Node.js function and is configured for long-running streaming requests.
-- `ollama` cannot use its default `http://localhost:11434/api` endpoint on Vercel.
-  Use an externally reachable Ollama-compatible endpoint or another hosted provider instead.
-- Very long translations can still hit Vercel plan limits if the upstream model responds too slowly.
-
-## GitHub Automation
-
-This repository includes one GitHub Actions workflow:
-
-- `CI` (`.github/workflows/ci.yml`)
-  - Runs on every push and pull request
-  - Installs dependencies, runs `npm run lint`, then `npm run build`
-
-For production deployment, use Vercel's Git integration with this repository.
-
-## 🤝 Contributing
-
-Contributions are welcome! Please read our [Contributing Guide](CONTRIBUTING.md) and [Code of Conduct](CODE_OF_CONDUCT.md) for details.
-
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 👥 Author
-
-**zumma488**
-
-- GitHub: [@zumma488](https://github.com/zumma488)
+MIT. See [LICENSE](LICENSE).

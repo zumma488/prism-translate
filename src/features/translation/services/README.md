@@ -1,43 +1,50 @@
-# translation services 说明
+[简体中文](./README.zh.md) | **English**
 
-## 文档层级
+# `src/features/translation/services/`
 
-- 当前层级：子模块级 / features.translation.services
-- 上级文档：
-  - `../README.md`
-  - `../../../../docs/architecture/TARGET_ARCHITECTURE.md`
-- 下级文档：无
-- 平级相关文档：
-  - `../components/README.md`
-  - `../hooks/README.md`
-  - `../../../services/llmService/README.md`
-  - `../../../entities/translation/README.md`
+## Purpose
 
-## 模块定位
+This directory contains translation feature business services. It is the main place for task creation, translation workflow coordination, result shaping, and translation-specific persistence helpers.
 
-这里用于沉淀 translation feature 的业务服务逻辑。
+## Current Responsibilities
 
-## 应承载的内容
-
-当前这里已开始承载：
+Current files include:
 - `translationOrchestrator.ts`
-  - 任务生成
-  - 启用模型解析
-  - 结果排序
-  - 结果分组
-  - 期望结果数量计算
+  - task generation
+  - enabled model resolution
+  - expected result count calculation
+  - result sorting and grouping
 - `translationExecutionService.ts`
-  - 并发执行翻译任务
-  - 渐进式回传结果
-  - 生成错误态结果并保持统一排序
+  - concurrent task execution
+  - progressive result callbacks
+  - normalized error result generation
 - `targetLanguagesPersistence.ts`
-  - 目标语言列表本地存储读写
-  - 持久化数据校验与回退默认值
+  - local persistence for target languages
+  - validation and fallback behavior
+- `translationStreamClient.ts`
+  - translation stream request coordination with the API boundary
 
-未来这里继续放：
-- 失败重试策略
+## Out Of Scope
 
-## 约束
+This directory should not directly own:
+- low-level provider SDK construction
+- generic crypto/config utilities
+- translation result rendering
 
-- 这里负责业务服务，不直接处理底层 SDK 适配。
-- LLM 具体调用应继续经由 `services/llmService` 或未来 `integrations/llm`。
+## Current Code Mapping
+
+This directory works with:
+- `../hooks/` for feature state orchestration
+- `../components/` for display
+- `../../../services/llmService/` and API/server boundaries for provider execution
+
+## Adjacent Modules
+
+- `../../../services/llmService/` handles model/provider access details.
+- `../../../entities/translation/` documents stable translation models.
+
+## Reading Guide
+
+- translation feature overview: `../README.md` or `../README.zh.md`
+- translation hooks: `../hooks/README.md` or `../hooks/README.zh.md`
+- LLM service layer: `../../../services/llmService/README.md` or `../../../services/llmService/README.zh.md`

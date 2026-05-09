@@ -1,47 +1,52 @@
-# features 目录说明
+[简体中文](./README.zh.md) | **English**
 
-## 模块定位
+# `src/features/`
 
-`src/features/` 是目标骨架中的业务能力层，用来承载面向具体业务场景的功能模块，而不是按文件类型平铺代码。
+## Purpose
 
-当前仓库里这个目录是本次文档落地时创建的目标骨架入口，用于承接未来从现有 `components + services + App.tsx` 逐步演进出来的业务模块。
+`src/features/` contains business-capability modules. It is the main frontend boundary for product behavior, organized by use case instead of by file type.
 
-## 文档层级
+## Current Responsibilities
 
-- 当前层级：业务模块级 / features
-- 上级文档：
-  - `../README.md`
-  - `../../docs/architecture/TARGET_ARCHITECTURE.md`
-  - `../../docs/architecture/PROJECT_ANALYSIS.md`
-- 下级文档：
-  - `./translation/README.md`
-  - `./settings/README.md`
-  - `./provider-management/README.md`
-- 平级相关文档：
-  - `../components/README.md`
-  - `../services/README.md`
-  - `../config/README.md`
+This layer currently groups:
+- `translation/` for translation workflow and comparison behavior
+- `settings/` for provider settings, model management, import/export, and persistence-facing state
+- `provider-management/` for provider onboarding and provider-management rules
 
-## 目录职责
+It is already used as a real documentation and code boundary, even though some implementation is still distributed across older directories.
 
-这个层级负责承载：
-- translation：翻译业务工作流
-- settings：设置工作流
-- provider-management：provider 接入与管理工作流
+## Out Of Scope
 
-## 非职责范围
+`src/features/` should not directly own:
+- low-level provider SDK wiring
+- generic crypto and config IO utilities
+- App Router route definitions
+- purely presentational base UI primitives
 
-这个目录不直接承担：
-- 最底层 LLM SDK 对接细节
-- 最底层浏览器 API 封装
-- 全局架构总纲说明
+Those belong in `src/services/`, `server/`, `app/`, or `src/components/ui/`.
 
-这些分别应归入：
-- `src/services/` 或未来 `src/integrations/`
-- `docs/architecture/`
+## Current Code Mapping
 
-## 阅读建议
+Main submodules:
+- `./translation/`
+- `./settings/`
+- `./provider-management/`
 
-- 想理解翻译核心工作流 → `./translation/README.md`
-- 想理解设置与配置工作流 → `./settings/README.md`
-- 想理解 provider 管理职责 → `./provider-management/README.md`
+Some responsibilities are still shared with:
+- `../components/`
+- `../services/`
+- `../config/`
+- `../types.ts`
+- `../constants.ts`
+
+## Adjacent Modules
+
+- `../components/` contains reusable UI and partially migrated business UI.
+- `../services/` contains shared infrastructure used by feature modules.
+- `../entities/` defines stable domain models that features rely on.
+
+## Reading Guide
+
+- Translation workflow: `./translation/README.md` or `./translation/README.zh.md`
+- Settings workflow: `./settings/README.md` or `./settings/README.zh.md`
+- Provider management: `./provider-management/README.md` or `./provider-management/README.zh.md`

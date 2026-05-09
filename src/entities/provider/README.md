@@ -1,29 +1,40 @@
-# provider entities 说明
+[简体中文](./README.zh.md) | **English**
 
-## 文档层级
+# `src/entities/provider/`
 
-- 当前层级：实体子模块级 / entities.provider
-- 上级文档：
-  - `../README.md`
-  - `../../../docs/architecture/TARGET_ARCHITECTURE.md`
-- 下级文档：无
-- 平级相关文档：
-  - `../translation/README.md`
-  - `../settings/README.md`
-  - `../../config/README.md`
-  - `../../services/README.md`
+## Purpose
 
-## 模块职责
+This directory documents the stable provider-related domain models shared across provider management, settings, config, and service layers.
 
-这里应承载与 Provider 相关的核心实体定义，例如：
-- ProviderDefinition
-- ProviderConfig
-- ProviderType
-- Provider capability metadata
+## Current Responsibilities
 
-## 当前代码映射
+This area is intended to cover concepts such as:
+- `ProviderDefinition`
+- `ProviderConfig`
+- `ProviderType`
+- provider capability metadata
 
-当前对应实现主要在：
+## Out Of Scope
+
+This directory should not directly own:
+- provider UI rendering
+- runtime provider instantiation
+- translation execution orchestration
+
+## Current Code Mapping
+
+Current implementations mainly still live in:
 - `src/types.ts`
 - `src/config/models.ts`
 - `src/services/llmService/providers.ts`
+
+## Adjacent Modules
+
+- `../../features/provider-management/` depends on these concepts.
+- `../../config/` contains static provider metadata.
+- `../../services/` contains runtime provider access logic.
+
+## Reading Guide
+
+- entities overview: `../README.md` or `../README.zh.md`
+- provider management: `../../features/provider-management/README.md` or `../../features/provider-management/README.zh.md`

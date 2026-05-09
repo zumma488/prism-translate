@@ -1,42 +1,47 @@
-# components 目录说明
+[简体中文](./README.zh.md) | **English**
 
-## 模块定位
+# `src/components/`
 
-`src/components/` 承载当前项目的大部分界面组件，包括翻译输入、结果展示、设置弹窗，以及一部分基础 UI 组件目录。
+## Purpose
 
-## 文档层级
+`src/components/` contains reusable UI components and page-level interface pieces that have not all been fully moved into feature-specific directories yet.
 
-- 当前层级：界面组件层级 / components
-- 上级文档：
-  - `../README.md`
-  - `../../docs/architecture/PROJECT_ANALYSIS.md`
-- 下级文档：
-  - `./settings/README.md`
-- 平级相关文档：
-  - `../features/README.md`
-  - `../services/README.md`
-  - `../config/README.md`
+## Current Responsibilities
 
-## 当前目录职责
+This directory currently includes:
+- translation input UI
+- settings modal UI
+- shared interaction components
+- base UI primitives under `ui/`
+- settings-related view components under `settings/`
 
-当前这里主要包括：
-- 翻译输入组件
-- 翻译结果组件
-- 设置相关组件
-- UI 基础组件目录（`ui/`）
+## Out Of Scope
 
-## 当前关键组件
+This directory should not become the permanent home for:
+- low-level provider logic
+- settings persistence rules
+- translation orchestration services
 
+Those belong in features or services.
+
+## Current Code Mapping
+
+Representative files:
 - `TranslationInput.tsx`
 - `SettingsModal.tsx`
 - `ModelSelectorPopover.tsx`
+- `Header.tsx`
+- `LanguageSwitcher.tsx`
 
-## 结构说明
+## Adjacent Modules
 
-当前项目还是“按组件目录集中组织”的结构，所以一部分本该属于 feature 的组件仍在逐步迁移。`TranslationGroup.tsx` 和 `TranslationCard.tsx` 已移动到 `src/features/translation/components/`，这里保留更通用的页面级与设置相关组件。
+- `../features/translation/` owns translation business behavior.
+- `../features/settings/` owns settings state and business rules.
+- `./settings/` contains settings-oriented UI.
+- `./ui/` contains base UI primitives.
 
-## 阅读建议
+## Reading Guide
 
-- 想看设置组件 → `./settings/README.md`
-- 想看 translation 业务边界 → `../features/translation/README.md`
-- 想看服务逻辑 → `../services/README.md`
+- base UI: `./ui/README.md` or `./ui/README.zh.md`
+- settings UI: `./settings/README.md` or `./settings/README.zh.md`
+- translation feature: `../features/translation/README.md` or `../features/translation/README.zh.md`

@@ -1,35 +1,37 @@
-# config 目录说明
+[简体中文](./README.zh.md) | **English**
 
-## 模块定位
+# `src/config/`
 
-`src/config/` 负责承载当前项目中的静态配置定义，尤其是 Provider 定义、默认模型与相关元数据。
+## Purpose
 
-## 文档层级
+`src/config/` contains static provider configuration and metadata that is safe to expose to the browser.
 
-- 当前层级：配置层级 / config
-- 上级文档：
-  - `../README.md`
-  - `../../docs/architecture/PROJECT_ANALYSIS.md`
-  - `../../docs/architecture/TARGET_ARCHITECTURE.md`
-- 下级文档：无
-- 平级相关文档：
-  - `../services/README.md`
-  - `../features/provider-management/README.md`
-  - `../entities/provider/README.md`
+## Current Responsibilities
 
-## 当前目录职责
+This directory currently owns:
+- provider static definitions
+- default model collections
+- provider display metadata
 
-当前这里主要负责：
-- Provider 静态定义
-- 默认模型集合
-- 与 provider 展示有关的元信息
+## Out Of Scope
 
-## 当前关键文件
+This directory should not directly own:
+- runtime provider instantiation
+- private secrets
+- translation execution logic
 
+## Current Code Mapping
+
+Key file:
 - `models.ts`
 
-## 实现约束
+## Adjacent Modules
 
-- 静态定义与运行时实例化逻辑应保持分层。
-- Provider 元信息不应散落到多个不相关目录。
-- 新增 provider 时，这里应是固定入口之一。
+- `../features/provider-management/` uses this metadata to drive provider management flows.
+- `../services/llmService/` uses it when resolving provider/model behavior.
+- `../entities/provider/` documents the related stable model concepts.
+
+## Reading Guide
+
+- provider management: `../features/provider-management/README.md` or `../features/provider-management/README.zh.md`
+- LLM services: `../services/llmService/README.md` or `../services/llmService/README.zh.md`

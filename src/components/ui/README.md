@@ -1,35 +1,39 @@
-# ui components 说明
+[简体中文](./README.zh.md) | **English**
 
-## 文档层级
+# `src/components/ui/`
 
-- 当前层级：基础 UI 子模块级 / components.ui
-- 上级文档：
-  - `../README.md`
-  - `../../../docs/architecture/TARGET_ARCHITECTURE.md`
-- 下级文档：无
-- 平级相关文档：
-  - `../settings/README.md`
-  - `../../features/README.md`
+## Purpose
 
-## 模块定位
+This directory contains base UI primitives and visual infrastructure. These components are generic building blocks rather than business-specific views.
 
-这里用于存放基础 UI 组件，主要承担视觉与交互基础设施作用，而不是具体业务语义。
+## Current Responsibilities
 
-## 模块职责
+This directory is suitable for:
+- buttons
+- dialogs
+- popovers
+- inputs
+- tabs
+- sheets
+- other shadcn/ui-style primitives
 
-这里适合放：
-- Button
-- Dialog
-- Popover
-- Input
-- Tabs
-- Sheet
-- 其他 shadcn/ui 基础组件
+## Out Of Scope
 
-## 非职责范围
+This directory should not contain:
+- business-specific translation components
+- business-specific settings views
+- feature orchestration logic
 
-这里不应放：
-- TranslationInput 这种有明确业务语义的组件
-- SettingsModal 这种有明确业务边界的组件
+## Current Code Mapping
 
-这些应逐步归入对应 feature 或业务组件目录。
+This is the base UI layer used by reusable and feature-specific components elsewhere in `src/components/` and `src/features/`.
+
+## Adjacent Modules
+
+- `../settings/` contains settings-specific UI.
+- `../../features/` contains business modules that compose these primitives.
+
+## Reading Guide
+
+- components overview: `../README.md` or `../README.zh.md`
+- settings UI: `../settings/README.md` or `../settings/README.zh.md`

@@ -1,48 +1,53 @@
-# settings hooks 说明
+[简体中文](./README.zh.md) | **English**
 
-## 文档层级
+# `src/features/settings/hooks/`
 
-- 当前层级：子模块级 / features.settings.hooks
-- 上级文档：
-  - `../README.md`
-  - `../../../../docs/architecture/TARGET_ARCHITECTURE.md`
-- 下级文档：无
-- 平级相关文档：
-  - `../components/README.md`
-  - `../services/README.md`
-  - `../../../services/README.md`
+## Purpose
 
-## 模块定位
+This directory contains settings-specific React hooks for state management and workflow coordination.
 
-这里用于沉淀 settings feature 下的状态管理 hooks。
+## Current Responsibilities
 
-## 应承载的内容
-
-当前这里已开始承载：
+Current hooks include:
 - `useAppSettings`
-  - settings 加载
-  - settings 持久化触发
-  - settings modal 开关状态
-  - activeModelKey 选择
-  - languageModels 绑定更新
+  - settings loading
+  - persistence triggering
+  - settings modal state
+  - active model selection
+  - language-model binding updates
 - `useSettingsImportExport`
-  - 配置导入导出流程
-  - 导入冲突确认状态
-  - 导入/导出 toast 反馈
+  - import/export flow
+  - import conflict confirmation state
+  - import/export feedback
 - `useSettingsModalNavigation`
-  - settings modal 内部视图切换
-  - 移动端返回键行为编排
+  - modal-internal navigation
+  - mobile back behavior
 - `useSettingsProviderEditing`
-  - provider 新增 / 编辑上下文
-  - provider 保存 / 删除入口
-  - 编辑页初始配置解析
+  - provider add/edit context
+  - provider save/delete actions
+  - edit-view initial state parsing
 
-未来这里继续放：
-- `useProviderSettings`
-- `useLanguageModelBindings`
-- 更细粒度的 provider 表单状态 hooks
+## Out Of Scope
 
-## 约束
+This directory should not directly own:
+- final settings view rendering
+- low-level config IO implementation
+- translation execution behavior
 
-- 设置状态与设置 UI 应逐步解耦。
-- hooks 负责业务状态，不直接负责视图结构。
+## Current Code Mapping
+
+These hooks coordinate with:
+- `../components/` for rendering
+- `../services/` for settings business logic
+- `../../../services/` for shared config infrastructure
+
+## Adjacent Modules
+
+- `../components/` renders the flows managed here.
+- `../services/` contains persistence-facing business services.
+
+## Reading Guide
+
+- settings feature overview: `../README.md` or `../README.zh.md`
+- settings services: `../services/README.md` or `../services/README.zh.md`
+- shared services: `../../../services/README.md` or `../../../services/README.zh.md`

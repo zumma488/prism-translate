@@ -1,29 +1,40 @@
-# settings entities 说明
+[简体中文](./README.zh.md) | **English**
 
-## 文档层级
+# `src/entities/settings/`
 
-- 当前层级：实体子模块级 / entities.settings
-- 上级文档：
-  - `../README.md`
-  - `../../../docs/architecture/TARGET_ARCHITECTURE.md`
-- 下级文档：无
-- 平级相关文档：
-  - `../provider/README.md`
-  - `../translation/README.md`
-  - `../../features/settings/README.md`
+## Purpose
 
-## 模块职责
+This directory documents the stable settings-related domain models shared across settings flows, import/export, and persistence logic.
 
-这里应承载与设置系统相关的核心实体定义，例如：
-- AppSettings
-- ActiveModelKey
-- LanguageModelBindings
-- Import / Export payload
-- SettingsMigrationState
+## Current Responsibilities
 
-## 当前代码映射
+This area is intended to cover concepts such as:
+- `AppSettings`
+- `ActiveModelKey`
+- `LanguageModelBindings`
+- import/export payloads
+- settings migration state
 
-当前对应实现主要在：
+## Out Of Scope
+
+This directory should not directly own:
+- settings UI behavior
+- local storage implementation details
+- provider API calls
+
+## Current Code Mapping
+
+Current implementations mainly still live in:
 - `src/types.ts`
 - `src/services/configIO.ts`
-- Local browser storage utilities for provider settings
+- browser storage-related settings utilities
+
+## Adjacent Modules
+
+- `../../features/settings/` uses these concepts.
+- `../../services/` contains config IO and persistence helpers.
+
+## Reading Guide
+
+- entities overview: `../README.md` or `../README.zh.md`
+- settings feature: `../../features/settings/README.md` or `../../features/settings/README.zh.md`

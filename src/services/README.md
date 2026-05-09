@@ -1,45 +1,44 @@
-# services 目录说明
+[简体中文](./README.zh.md) | **English**
 
-## 模块定位
+# `src/services/`
 
-`src/services/` 是当前项目中的服务层，主要承载配置读写、加密解密以及 LLM 调用相关逻辑。
+## Purpose
 
-在目标骨架中，这个层级未来会进一步收敛为更清晰的 `integrations/` 与部分 feature services，但当前项目的很多关键能力仍然集中在这里。
+`src/services/` is the shared infrastructure layer for frontend-adjacent services. It currently contains configuration IO, crypto utilities, and LLM/provider access helpers used by feature modules.
 
-## 文档层级
+## Current Responsibilities
 
-- 当前层级：服务层级 / services
-- 上级文档：
-  - `../README.md`
-  - `../../docs/architecture/PROJECT_ANALYSIS.md`
-  - `../../docs/architecture/TARGET_ARCHITECTURE.md`
-- 下级文档：
-  - `./llmService/README.md`
-- 平级相关文档：
-  - `../components/README.md`
-  - `../features/README.md`
-  - `../config/README.md`
-  - `../entities/README.md`
+This directory currently owns:
+- LLM call wrapping
+- provider model creation helpers
+- `safeFetch`-style request guarding
+- configuration import/export support
+- local config encryption/decryption helpers
 
-## 当前目录职责
+## Out Of Scope
 
-当前主要负责：
-- LLM 调用封装
-- Provider 模型实例化
-- safeFetch 错误兜底
-- 配置导入导出
-- 本地配置加密解密
+This directory should not directly own:
+- business-specific translation presentation
+- settings modal rendering
+- App Router route files
 
-## 当前关键文件
+## Current Code Mapping
 
+Key files:
 - `configIO.ts`
 - `crypto.ts`
 - `llmService/index.ts`
 - `llmService/providers.ts`
 - `llmService/safeFetch.ts`
 
-## 阅读建议
+## Adjacent Modules
 
-- 想看 LLM 接入 → `./llmService/README.md`
-- 想看 settings 业务视角 → `../features/settings/README.md`
-- 想看整体目标边界 → `../../docs/architecture/TARGET_ARCHITECTURE.md`
+- `../features/` uses this directory for shared infrastructure.
+- `../config/` provides static metadata consumed by services.
+- `../../server/` is the server-side runtime boundary adjacent to this layer.
+
+## Reading Guide
+
+- LLM integration details: `./llmService/README.md` or `./llmService/README.zh.md`
+- settings business context: `../features/settings/README.md` or `../features/settings/README.zh.md`
+- translation business context: `../features/translation/README.md` or `../features/translation/README.zh.md`

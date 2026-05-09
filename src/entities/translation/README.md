@@ -1,29 +1,40 @@
-# translation entities 说明
+[简体中文](./README.zh.md) | **English**
 
-## 文档层级
+# `src/entities/translation/`
 
-- 当前层级：实体子模块级 / entities.translation
-- 上级文档：
-  - `../README.md`
-  - `../../../docs/architecture/TARGET_ARCHITECTURE.md`
-- 下级文档：无
-- 平级相关文档：
-  - `../provider/README.md`
-  - `../settings/README.md`
-  - `../../features/translation/README.md`
+## Purpose
 
-## 模块职责
+This directory documents the stable translation-related domain models shared across translation UI, orchestration, and result handling.
 
-这里应承载与翻译工作流相关的核心实体定义，例如：
-- TranslationTask
-- TranslationResult
-- TranslationGroup
-- TranslationExecutionState
-- LanguageBinding
+## Current Responsibilities
 
-## 当前代码映射
+This area is intended to cover concepts such as:
+- `TranslationTask`
+- `TranslationResult`
+- translation grouping structures
+- translation execution state
+- language bindings
 
-当前对应实现主要在：
+## Out Of Scope
+
+This directory should not directly own:
+- result card rendering
+- low-level provider execution
+- settings persistence logic
+
+## Current Code Mapping
+
+Current implementations mainly still live in:
 - `src/types.ts`
 - `src/constants.ts`
 - `src/App.tsx`
+
+## Adjacent Modules
+
+- `../../features/translation/` uses these concepts.
+- `../../services/` and API/server boundaries execute the workflows built on them.
+
+## Reading Guide
+
+- entities overview: `../README.md` or `../README.zh.md`
+- translation feature: `../../features/translation/README.md` or `../../features/translation/README.zh.md`

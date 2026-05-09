@@ -1,30 +1,43 @@
-# provider-management services 说明
+[简体中文](./README.zh.md) | **English**
 
-## 文档层级
+# `src/features/provider-management/services/`
 
-- 当前层级：子模块级 / features.provider-management.services
-- 上级文档：
-  - `../README.md`
-  - `../../../../docs/architecture/TARGET_ARCHITECTURE.md`
-- 下级文档：无
-- 平级相关文档：
-  - `../../../config/README.md`
-  - `../../../services/llmService/README.md`
-  - `../../../entities/provider/README.md`
+## Purpose
 
-## 模块定位
+This directory is the intended place for provider-management business services and provider onboarding rules.
 
-这里用于沉淀 provider-management feature 下的业务服务逻辑。
+## Current Responsibilities
 
-## 应承载的内容
+It is intended to concentrate:
+- provider onboarding rules
+- provider capability mapping
+- provider model-fetch coordination logic
+- checklists for adding new providers
 
-未来这里应放：
-- Provider 接入规则
-- Provider 能力映射
-- Provider 模型拉取协同逻辑
-- 新增 Provider 的接入检查清单
+At the moment, most of these rules are still partially distributed outside this directory.
 
-## 约束
+## Out Of Scope
 
-- 新增 Provider 的业务规则应逐步集中，而不是散在多个无关文件。
-- 静态定义、业务管理、底层实例化三者应保持边界。
+This directory should not directly own:
+- static provider metadata
+- low-level model/provider instantiation
+- translation UI
+
+## Current Code Mapping
+
+Related logic currently also lives in:
+- `src/config/`
+- `src/services/llmService/`
+- settings-related UI and hooks
+
+## Adjacent Modules
+
+- `../../../config/` owns static provider definitions.
+- `../../../services/llmService/` owns low-level provider/model wiring.
+- `../../../entities/provider/` documents shared provider models.
+
+## Reading Guide
+
+- provider-management overview: `../README.md` or `../README.zh.md`
+- provider entities: `../../../entities/provider/README.md` or `../../../entities/provider/README.zh.md`
+- LLM service layer: `../../../services/llmService/README.md` or `../../../services/llmService/README.zh.md`

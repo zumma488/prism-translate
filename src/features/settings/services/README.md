@@ -1,36 +1,45 @@
-# settings services 说明
+[简体中文](./README.zh.md) | **English**
 
-## 文档层级
+# `src/features/settings/services/`
 
-- 当前层级：子模块级 / features.settings.services
-- 上级文档：
-  - `../README.md`
-  - `../../../../docs/architecture/TARGET_ARCHITECTURE.md`
-- 下级文档：无
-- 平级相关文档：
-  - `../components/README.md`
-  - `../hooks/README.md`
-  - `../../../services/README.md`
-  - `../../../entities/settings/README.md`
+## Purpose
 
-## 模块定位
+This directory contains settings feature business services and settings-specific persistence rules.
 
-这里用于沉淀 settings feature 下的业务服务逻辑。
+## Current Responsibilities
 
-## 应承载的内容
-
-当前这里已开始承载：
+Current files include:
 - `settingsPersistence.ts`
-  - 配置迁移
-  - 设置持久化策略
-  - activeModelKey 校验与兜底
+  - settings migration
+  - persistence strategy
+  - `activeModelKey` validation and fallback
 
-未来这里继续放：
-- 配置合并
-- 导入导出规则
-- 设置校验规则
+This directory is also the intended home for:
+- settings merge rules
+- import/export rules
+- settings validation policies
 
-## 约束
+## Out Of Scope
 
-- 设置相关的正式业务规则应逐步汇聚到这里。
-- 与 UI 无关的配置逻辑不应长期埋在组件中。
+This directory should not directly own:
+- settings modal rendering
+- low-level provider SDK access
+- route handling
+
+## Current Code Mapping
+
+This directory works with:
+- `../hooks/` for state orchestration
+- `../../../services/` for shared config utilities
+- `../../../entities/settings/` for stable settings model boundaries
+
+## Adjacent Modules
+
+- `../hooks/` manages settings state.
+- `../../../services/` provides shared config IO and crypto utilities.
+
+## Reading Guide
+
+- settings feature overview: `../README.md` or `../README.zh.md`
+- settings hooks: `../hooks/README.md` or `../hooks/README.zh.md`
+- settings entities: `../../../entities/settings/README.md` or `../../../entities/settings/README.zh.md`

@@ -1,83 +1,47 @@
-# settings feature 说明
+[简体中文](./README.zh.md) | **English**
 
-## 模块定位
+# `src/features/settings/`
 
-`src/features/settings/` 负责承载 Provider 配置、模型管理、默认模型管理、配置导入导出、配置持久化与迁移相关的业务能力。
+## Purpose
 
-## 文档层级
+`src/features/settings/` owns provider configuration, model management, default selection behavior, import/export flows, and settings persistence-facing state.
 
-- 当前层级：模块级 / features.settings
-- 上级文档：
-  - `../README.md`
-  - `../../../docs/architecture/TARGET_ARCHITECTURE.md`
-  - `../../../docs/architecture/PROJECT_ANALYSIS.md`
-- 下级文档：
-  - 未来可补：`./components/README.md`
-  - 未来可补：`./hooks/README.md`
-  - 未来可补：`./services/README.md`
-- 平级相关文档：
-  - `../translation/README.md`
-  - `../provider-management/README.md`
-  - `../../services/README.md`
-  - `../../components/README.md`
-  - `../../entities/settings/README.md`
+## Current Responsibilities
 
-## 模块职责
+This module currently owns:
+- adding, editing, and removing providers
+- model list management
+- protocol mode selection for OpenAI and compatible providers
+- default model selection and language-model bindings
+- settings import/export flows
+- persistence and migration coordination
 
-这个模块应负责：
-- Provider 的新增、编辑、删除
-- 模型列表管理
-- OpenAI / OpenAI-compatible Provider 的协议模式选择（Responses / Chat Completions）
-- 默认模型与语言绑定模型管理
-- 配置导入导出
-- 配置迁移与持久化
-- 配置冲突处理
+## Out Of Scope
 
-## 非职责范围
+This module should not directly own:
+- translation result rendering
+- low-level LLM request adaptation
+- App Router route definitions
 
-这个模块不应直接负责：
-- 具体翻译结果展示
-- LLM 底层请求适配
-- 页面主入口编排
+## Current Code Mapping
 
-## 当前代码映射
-
-在当前项目实现里，这部分职责主要分散在：
+Settings behavior currently spans:
+- `src/features/settings/components/`
+- `src/features/settings/hooks/`
+- `src/features/settings/services/`
 - `src/components/SettingsModal.tsx`
-- `src/components/settings/EditProviderView.tsx`
-- `src/components/settings/ConnectProviderView.tsx`
-- `src/components/settings/ManageModelsView.tsx`
-- `src/features/settings/hooks/useAppSettings.ts`
-- `src/features/settings/hooks/useSettingsImportExport.ts`
-- `src/features/settings/hooks/useSettingsModalNavigation.ts`
-- `src/features/settings/hooks/useSettingsProviderEditing.ts`
+- `src/components/settings/`
 - `src/services/configIO.ts`
-- Local browser storage and import/export utilities
-- `src/App.tsx`（仍负责页面级编排，但已不再直接承载 settings load/save/model-selection 状态）
+- `src/App.tsx`
 
-## 核心数据流
+## Adjacent Modules
 
-```text
-用户进入设置
-  ↓
-编辑 provider / model / 默认模型配置
-  ↓
-执行保存
-  ↓
-配置持久化到 localStorage
-  ↓
-必要时执行加密 / 迁移 / 导入导出
-```
+- `../provider-management/` covers provider onboarding and management rules.
+- `../../services/` covers config IO, crypto, and shared infrastructure.
+- `../../entities/settings/` documents stable settings-related models.
 
-## 实现约束
+## Reading Guide
 
-- SettingsModal 应逐步退化为 UI 外壳，而不是承载全部配置逻辑。
-- provider 表单状态与模型拉取流程应继续从 `EditProviderView` 下沉。
-- 配置持久化、迁移、合并策略应逐步独立。
-- 配置能力应视为正式业务能力，而不是附属弹窗功能。
-
-## 阅读建议
-
-- 想看当前设置 UI → `../../components/README.md`
-- 想看配置持久化与加密 → `../../services/README.md`
-- 想看目标态边界 → `../../../docs/architecture/TARGET_ARCHITECTURE.md`
+- settings UI: `./components/README.md` or `./components/README.zh.md`
+- settings hooks: `./hooks/README.md` or `./hooks/README.zh.md`
+- settings services: `./services/README.md` or `./services/README.zh.md`
