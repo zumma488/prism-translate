@@ -17,6 +17,7 @@ dist
 dist-ssr
 .next
 out
+next-env.d.ts
 tsconfig.tsbuildinfo
 .secrets/
 *.local
