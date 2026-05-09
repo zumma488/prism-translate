@@ -34,14 +34,6 @@ Please pay special attention to:
 - server/API proxy behavior and request handling
 - request-body logging or third-party observability that could capture secrets in transit
 
-## Current Security Model
-
-- Provider configuration is stored in the browser by the user.
-- Exported `.prism` files are plaintext JSON.
-- During model discovery and translation, the browser sends provider configuration to the app's API routes.
-- The server runtime then uses that configuration to call upstream providers.
-- Anyone operating a deployment of this app is inside the trust boundary for credentials that transit that deployment.
-
 ## Disclosure
 
 Because reporting is public for this repository, please keep disclosures focused on sanitized reproduction details and impact. Do not publish secrets while discussing a vulnerability.

@@ -51,25 +51,23 @@ This means the repository is no longer a simple client-only dashboard: the UI st
 - Components: [`src/components/README.md`](src/components/README.md) / [`src/components/README.zh.md`](src/components/README.zh.md)
 - Entities: [`src/entities/README.md`](src/entities/README.md) / [`src/entities/README.zh.md`](src/entities/README.zh.md)
 
-## Community
+## Docs
 
-- Contribution guide: [CONTRIBUTING.md](CONTRIBUTING.md) / [CONTRIBUTING.zh.md](CONTRIBUTING.zh.md)
+- Contributor workflow: [CONTRIBUTING.md](CONTRIBUTING.md) / [CONTRIBUTING.zh.md](CONTRIBUTING.zh.md)
+- Support and issue routing: [SUPPORT.md](SUPPORT.md) / [SUPPORT.zh.md](SUPPORT.zh.md)
 - Security policy: [SECURITY.md](SECURITY.md) / [SECURITY.zh.md](SECURITY.zh.md)
+- Self-hosting: [SELF_HOSTING.md](SELF_HOSTING.md) / [SELF_HOSTING.zh.md](SELF_HOSTING.zh.md)
+- Trust model: [TRUST_MODEL.md](TRUST_MODEL.md) / [TRUST_MODEL.zh.md](TRUST_MODEL.zh.md)
 - Code of conduct: [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) / [CODE_OF_CONDUCT.zh.md](CODE_OF_CONDUCT.zh.md)
 - Changelog: [CHANGELOG.md](CHANGELOG.md) / [CHANGELOG.zh.md](CHANGELOG.zh.md)
 
 ## Runtime And Security Notes
 
-- Provider settings are stored in the current browser.
-- API keys and other provider secrets should be treated as sensitive.
-- Exported `.prism` files are plaintext JSON and must be handled as sensitive files.
-- Do not describe the current browser storage model as enterprise-grade secret storage.
-- `src/config/` only contains static metadata that is safe to ship to the browser.
-- The browser sends provider configuration, including credentials when present, to `app/api/providers/models` and `app/api/translate/stream` during model discovery and translation operations.
-- Server request handling and provider/model access live behind Next.js API routes and `server/` code, so deployment operators are part of the trust boundary.
-- Public or shared hosting of this app is not equivalent to a managed secret-safe SaaS product.
-- Avoid request-body logging or third-party observability that could capture provider credentials in transit.
-- Do not include live keys, exported `.prism` files, or raw provider payloads in public issues or pull requests.
+- Provider settings live in the browser, and exported `.prism` files are plaintext JSON.
+- During model discovery and translation, the browser sends provider configuration to the app's API routes.
+- Deployment operators are inside the trust boundary, so public/shared hosting is not equivalent to a managed secret-safe SaaS product.
+- Do not publish live keys, exported `.prism` files, or raw provider payloads in issues or pull requests.
+- For the full credential flow, trust assumptions, and logging risks, see [TRUST_MODEL.md](TRUST_MODEL.md) and [SECURITY.md](SECURITY.md).
 
 ## Tech Stack
 
@@ -142,6 +140,7 @@ Operational notes:
 - Provider credentials are not sourced from Vercel environment variables by default; they are managed in the browser UI.
 - Very long translations can still hit platform execution limits if upstream providers respond too slowly.
 - Default local `ollama` endpoints are not directly usable on Vercel unless exposed through a reachable compatible endpoint.
+- See [SELF_HOSTING.md](SELF_HOSTING.md) for deployment fit, operator trust assumptions, and endpoint reachability guidance.
 
 ## Screenshots
 
