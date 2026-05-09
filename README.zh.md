@@ -11,7 +11,7 @@
 Prism Translate 是一个多语言、多模型、多提供商的翻译对比工作台。一次输入可以交给多个模型翻译，不同目标语言可以绑定不同模型集合，结果会以便于横向比较的方式展示。
 
 <p align="center">
-  <a href="https://zumma488.github.io/prism-translate/"><b>在线演示</b></a>
+  <a href="https://prism-translate.vercel.app/"><b>在线演示</b></a>
 </p>
 
 ## 功能特性

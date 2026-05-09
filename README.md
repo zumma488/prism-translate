@@ -11,7 +11,7 @@
 Prism Translate is a multi-language, multi-model, multi-provider translation comparison workspace. One input can be translated by multiple models, target languages can bind to different model sets, and results are presented for side-by-side quality comparison.
 
 <p align="center">
-  <a href="https://zumma488.github.io/prism-translate/"><b>Live Demo</b></a>
+  <a href="https://prism-translate.vercel.app/"><b>Live Demo</b></a>
 </p>
 
 ## Features
