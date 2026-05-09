@@ -75,7 +75,7 @@
     "react-dom": "^19.2.6",
     "react-i18next": "^16.5.4",
     "tailwind-merge": "^3.4.0",
-    "workers-ai-provider": "^3.0.4",
+    "workers-ai-provider": "^3.1.14",
     "zhipu-ai-provider": "^0.3.1",
     "zod": "^3.25.76"
   },
