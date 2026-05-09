@@ -37,7 +37,7 @@ Settings behavior currently spans:
 ## Adjacent Modules
 
 - `../provider-management/` covers provider onboarding and management rules.
-- `../../services/` covers config IO, crypto, and shared infrastructure.
+- `../../services/` covers config IO, legacy compatibility helpers, and shared infrastructure.
 - `../../entities/settings/` documents stable settings-related models.
 
 ## Reading Guide

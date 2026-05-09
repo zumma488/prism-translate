@@ -37,7 +37,7 @@ settings 相关实现当前分布在：
 ## 相邻模块关系
 
 - `../provider-management/` 负责 Provider 接入与管理规则。
-- `../../services/` 负责 config IO、crypto 与共享基础设施。
+- `../../services/` 负责 config IO、旧格式兼容辅助与共享基础设施。
 - `../../entities/settings/` 记录稳定的 settings 领域模型。
 
 ## 阅读建议

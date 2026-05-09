@@ -20,7 +20,7 @@
 
 这个模块不应直接承载：
 - 底层 Provider SDK 实例化
-- 通用配置加密解密
+- 通用配置兼容性处理
 - settings 导入导出规则
 - App Router 路由处理
 

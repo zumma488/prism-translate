@@ -4,7 +4,7 @@
 
 ## Purpose
 
-`src/services/` is the shared infrastructure layer for frontend-adjacent services. It currently contains configuration IO, crypto utilities, and LLM/provider access helpers used by feature modules.
+`src/services/` is the shared infrastructure layer for frontend-adjacent services. It currently contains configuration IO, legacy compatibility helpers, and LLM/provider access helpers used by feature modules.
 
 ## Current Responsibilities
 
@@ -13,7 +13,7 @@ This directory currently owns:
 - provider model creation helpers
 - `safeFetch`-style request guarding
 - configuration import/export support
-- local config encryption/decryption helpers
+- legacy compatibility paths for older configuration formats
 
 ## Out Of Scope
 

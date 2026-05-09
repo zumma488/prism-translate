@@ -25,7 +25,7 @@ This area is responsible for:
 This directory should not directly own:
 - config migration rules
 - import/export core logic
-- generic crypto handling
+- generic compatibility utilities
 
 ## Current Code Mapping
 

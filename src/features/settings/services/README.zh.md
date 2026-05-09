@@ -36,7 +36,7 @@
 ## 相邻模块关系
 
 - `../hooks/` 管理 settings 状态。
-- `../../../services/` 提供共享的 config IO 与 crypto 工具。
+- `../../../services/` 提供共享的 config IO 与旧格式兼容工具。
 
 ## 阅读建议
 

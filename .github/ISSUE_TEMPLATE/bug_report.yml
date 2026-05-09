@@ -1,0 +1,57 @@
+name: Bug report
+description: Report a reproducible problem in Prism Translate
+title: "[Bug]: "
+labels:
+  - bug
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report a bug. Please provide enough detail for someone else to reproduce it.
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: What happened?
+      placeholder: A short description of the bug
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Reproduction steps
+      description: How can we reproduce the issue?
+      placeholder: |
+        1. Go to ...
+        2. Configure ...
+        3. Observe ...
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+      placeholder: What did you expect to happen?
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: Include browser, OS, Node.js version, deployment target, or provider setup if relevant.
+    validations:
+      required: false
+  - type: input
+    id: provider-family
+    attributes:
+      label: Provider family
+      description: Example: OpenAI, Anthropic, Gemini, Ollama, OpenRouter, custom
+    validations:
+      required: false
+  - type: textarea
+    id: notes
+    attributes:
+      label: Additional context
+      description: Screenshots, logs, or other supporting details. Redact API keys, `.prism` contents, provider headers, and raw request payloads before posting.
+    validations:
+      required: false

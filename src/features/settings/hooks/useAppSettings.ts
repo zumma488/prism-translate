@@ -50,7 +50,7 @@ export function useAppSettings() {
       try {
         await persistSettings(settings);
       } catch (error) {
-        console.error('Failed to encrypt and save settings', error);
+        console.error('Failed to save settings', error);
       }
     }
 

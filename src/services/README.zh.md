@@ -4,7 +4,7 @@
 
 ## 模块定位
 
-`src/services/` 是前端侧相邻的共享基础设施层，当前承载 config IO、crypto 工具，以及 feature 会复用的 LLM/provider 访问辅助逻辑。
+`src/services/` 是前端侧相邻的共享基础设施层，当前承载 config IO、旧格式兼容辅助，以及 feature 会复用的 LLM/provider 访问辅助逻辑。
 
 ## 当前职责
 
@@ -13,7 +13,7 @@
 - Provider model 创建辅助
 - `safeFetch` 类请求兜底
 - 配置导入导出支持
-- 本地配置加密解密辅助
+- 旧配置格式兼容辅助
 
 ## 非职责范围
 

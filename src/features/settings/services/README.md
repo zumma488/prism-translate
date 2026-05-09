@@ -36,7 +36,7 @@ This directory works with:
 ## Adjacent Modules
 
 - `../hooks/` manages settings state.
-- `../../../services/` provides shared config IO and crypto utilities.
+- `../../../services/` provides shared config IO and legacy compatibility utilities.
 
 ## Reading Guide
 

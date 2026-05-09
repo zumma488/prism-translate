@@ -20,7 +20,7 @@ This module currently owns:
 
 This module should not directly own:
 - low-level provider SDK instantiation
-- generic config encryption/decryption
+- generic config compatibility handling
 - settings import/export rules
 - App Router route handling
 

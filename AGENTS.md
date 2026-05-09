@@ -104,7 +104,7 @@ For git work:
 - provider calls
 - `safeFetch`
 - response parsing
-- config IO and crypto utilities
+- config IO and legacy compatibility utilities
 - server-side request execution boundaries
 
 `entities` owns:

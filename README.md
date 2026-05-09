@@ -1,9 +1,5 @@
 # Prism Translate
 
-<div align="center">
-  <img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
-
 <p align="center">
   <a href="./README.zh.md">简体中文</a> | <b>English</b>
 </p>
@@ -38,7 +34,7 @@ The current codebase is a hybrid of active runtime structure and ongoing documen
   - `src/features/settings/` owns settings, persistence-facing state, and import/export flows.
   - `src/features/provider-management/` owns provider onboarding and provider-management rules.
 - `src/services/`
-  - Shared infrastructure for config IO, crypto utilities, and LLM/provider access.
+  - Shared infrastructure for config IO, legacy compatibility helpers, and LLM/provider access.
 - `src/components/`
   - Reusable and still-not-fully-migrated UI components.
 
@@ -55,14 +51,25 @@ This means the repository is no longer a simple client-only dashboard: the UI st
 - Components: [`src/components/README.md`](src/components/README.md) / [`src/components/README.zh.md`](src/components/README.zh.md)
 - Entities: [`src/entities/README.md`](src/entities/README.md) / [`src/entities/README.zh.md`](src/entities/README.zh.md)
 
+## Community
+
+- Contribution guide: [CONTRIBUTING.md](CONTRIBUTING.md) / [CONTRIBUTING.zh.md](CONTRIBUTING.zh.md)
+- Security policy: [SECURITY.md](SECURITY.md) / [SECURITY.zh.md](SECURITY.zh.md)
+- Code of conduct: [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) / [CODE_OF_CONDUCT.zh.md](CODE_OF_CONDUCT.zh.md)
+- Changelog: [CHANGELOG.md](CHANGELOG.md) / [CHANGELOG.zh.md](CHANGELOG.zh.md)
+
 ## Runtime And Security Notes
 
 - Provider settings are stored in the current browser.
 - API keys and other provider secrets should be treated as sensitive.
-- Exported `.prism` files can contain those secrets and must be handled as sensitive files.
+- Exported `.prism` files are plaintext JSON and must be handled as sensitive files.
 - Do not describe the current browser storage model as enterprise-grade secret storage.
 - `src/config/` only contains static metadata that is safe to ship to the browser.
-- Server request handling and provider/model access live behind Next.js API routes and `server/` code.
+- The browser sends provider configuration, including credentials when present, to `app/api/providers/models` and `app/api/translate/stream` during model discovery and translation operations.
+- Server request handling and provider/model access live behind Next.js API routes and `server/` code, so deployment operators are part of the trust boundary.
+- Public or shared hosting of this app is not equivalent to a managed secret-safe SaaS product.
+- Avoid request-body logging or third-party observability that could capture provider credentials in transit.
+- Do not include live keys, exported `.prism` files, or raw provider payloads in public issues or pull requests.
 
 ## Tech Stack
 
@@ -112,7 +119,10 @@ npm run dev
 
 ```bash
 npm run lint
+npm run typecheck
+npm run test
 npm run build
+npm run check
 ```
 
 ## Deployment
@@ -153,10 +163,12 @@ Operational notes:
 
 ## CI
 
-The repository includes a `CI` workflow in `.github/workflows/ci.yml` that runs:
+The repository includes [`.github/workflows/ci.yml`](.github/workflows/ci.yml). It runs on pushes and pull requests to `main` and executes:
 
-- `npm install`
+- `npm ci`
 - `npm run lint`
+- `npm run typecheck`
+- `npm run test`
 - `npm run build`
 
 ## License
