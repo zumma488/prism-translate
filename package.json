@@ -52,7 +52,7 @@
     "@ai-sdk/deepseek": "^2.0.17",
     "@ai-sdk/fireworks": "^2.0.31",
     "@ai-sdk/google": "^3.0.21",
-    "@ai-sdk/groq": "^3.0.21",
+    "@ai-sdk/groq": "^3.0.39",
     "@ai-sdk/mistral": "^3.0.18",
     "@ai-sdk/openai": "^3.0.25",
     "@ai-sdk/perplexity": "^3.0.17",
