@@ -41,15 +41,15 @@ const LanguageSwitcher: React.FC = () => {
     <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
       <DropdownMenuTrigger asChild>
         <Button
-          variant="ghost"
+          variant="outline"
           size="icon"
-          className="size-10 rounded-xl"
+          className="size-9 border-border/60 bg-card/55 text-muted-foreground shadow-none backdrop-blur hover:border-primary/25 hover:bg-card/90 hover:text-foreground"
           title={t('header.language')}
         >
-          <Icon name="language" size={20} />
+          <Icon name="language" size={18} />
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
+      <DropdownMenuContent align="end" sideOffset={8}>
         <DropdownMenuRadioGroup
           value={i18n.language}
           onValueChange={handleLanguageChange}

@@ -13,6 +13,14 @@
   - settings 迁移
   - 持久化策略
   - `activeModelKey` 校验与回退
+  - 执行模式与稳定模型标识规范化
+- `fetchProviderModels.ts`
+  - 感知执行模式的 Provider 模型拉取
+  - 浏览器直连与代理拉取协同
+- `providerFetchedModels.ts`
+  - 拉取模型去重
+  - 可选择模型状态整形
+  - 将选中的拉取模型合并到持久化 Provider 模型列表
 
 这个目录也是以下能力的预期归属位置：
 - settings 合并规则

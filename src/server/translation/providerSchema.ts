@@ -33,6 +33,7 @@ export const providerSchema = z
     models: z.array(
       z
         .object({
+          uid: z.string().optional(),
           id: z.string(),
           name: z.string(),
           enabled: z.boolean().optional(),
@@ -50,6 +51,7 @@ export const providerSchema = z
         })
         .strict(),
     ),
+    executionMode: z.enum(['inherit', 'browser-direct', 'server-proxy']).optional(),
     connection: z
       .object({
         baseUrl: z.string().optional(),
@@ -83,4 +85,3 @@ export const providerSchema = z
       .optional(),
   })
   .strict() satisfies z.ZodType<ProviderConfig>;
-

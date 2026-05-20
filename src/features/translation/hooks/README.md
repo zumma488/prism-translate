@@ -13,7 +13,8 @@ Current hooks include:
   - target language loading and persistence coordination
 - `useTranslationRunner.ts`
   - translation execution state
-  - progressive result collection
+  - progressive task-view and result collection
+  - incremental target-language execution decisions
   - error dispatch for translation runs
 
 ## Out Of Scope

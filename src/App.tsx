@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import Header from './components/Header';
-import SettingsModal from './components/SettingsModal';
 import TranslationInput from './components/TranslationInput';
 import { useAppSettings } from './features/settings/hooks/useAppSettings';
 import { TranslationOutputPanel } from './features/translation/components/TranslationOutputPanel';
@@ -12,13 +12,11 @@ import {
 } from './features/translation/services/translationOrchestrator';
 
 const App: React.FC = () => {
+  const router = useRouter();
   const [inputText, setInputText] = useState('');
   const [targetLanguages, setTargetLanguages, hasLoadedPersistedLanguages] =
     usePersistedTargetLanguages();
   const {
-    closeSettings,
-    isSettingsOpen,
-    openSettings,
     saveSettings,
     selectActiveModel,
     settings,
@@ -33,28 +31,40 @@ const App: React.FC = () => {
     settings.activeModelKey,
   );
   const isReady = settingsLoaded && hasLoadedPersistedLanguages;
-  const { status, translations, translate } = useTranslationRunner({
+  const {
+    status,
+    taskViews,
+    translations,
+    translate,
+    handleTargetLanguagesChange,
+  } = useTranslationRunner({
     targetLanguages: isReady ? targetLanguages : [],
     languageModels,
     activeModelKey: settings.activeModelKey,
-    enabledModels,
     providers: settings.providers,
+    enabledModels,
+    executionMode: settings.executionMode,
     hasActiveModel: Boolean(currentModel),
-    onMissingModel: openSettings,
+    onMissingModel: () => router.push('/settings/providers/models'),
     onError: (message) => alert(message),
   });
 
+  const handleLanguagesChange = (nextLanguages: string[]) => {
+    const previousLanguages = targetLanguages;
+    setTargetLanguages(nextLanguages);
+    void handleTargetLanguagesChange(previousLanguages, nextLanguages, inputText);
+  };
+
   return (
-    <div className="flex flex-col h-[100dvh] overflow-hidden md:overflow-hidden">
+    <div className="flex h-[100dvh] flex-col overflow-hidden bg-background text-foreground md:overflow-hidden">
       <Header
         enabledModels={enabledModels}
         currentModel={isReady ? currentModel : undefined}
         activeModelKey={isReady ? settings.activeModelKey : ''}
         onModelSelect={selectActiveModel}
-        onOpenSettings={openSettings}
       />
 
-      <main className="flex-1 overflow-hidden md:overflow-hidden overflow-y-auto relative w-full max-w-[1800px] mx-auto">
+      <main className="relative mx-auto w-full max-w-[1800px] flex-1 overflow-y-auto overflow-hidden md:overflow-hidden">
         {!isReady ? (
           <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
             Loading...
@@ -65,7 +75,7 @@ const App: React.FC = () => {
             inputText={inputText}
             onInputChange={setInputText}
             targetLanguages={targetLanguages}
-            onLanguagesChange={setTargetLanguages}
+            onLanguagesChange={handleLanguagesChange}
             onTranslate={() => {
               void translate(inputText);
             }}
@@ -78,6 +88,7 @@ const App: React.FC = () => {
 
           <TranslationOutputPanel
             status={status}
+            taskViews={taskViews}
             translations={translations}
             targetLanguages={targetLanguages}
             languageModels={languageModels}
@@ -86,13 +97,6 @@ const App: React.FC = () => {
         </div>
         )}
       </main>
-
-      <SettingsModal
-        isOpen={isSettingsOpen}
-        onClose={closeSettings}
-        currentSettings={settings}
-        onSave={saveSettings}
-      />
     </div>
   );
 };

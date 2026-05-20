@@ -2,7 +2,12 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 import TranslationGroup from './TranslationGroup';
 import { LANGUAGE_CONFIGS } from '../../../constants';
-import { AppStatus, LanguageConfig, TranslationResult } from '../../../types';
+import {
+  AppStatus,
+  LanguageConfig,
+  TranslationResult,
+  TranslationTaskView,
+} from '../../../types';
 import {
   EnabledModelMeta,
   getExpectedCountForLanguage,
@@ -13,6 +18,7 @@ import { Icon } from '@/components/ui/icon';
 
 interface TranslationOutputPanelProps {
   status: AppStatus;
+  taskViews: TranslationTaskView[];
   translations: TranslationResult[];
   targetLanguages: string[];
   languageModels: Record<string, string[]>;
@@ -21,22 +27,23 @@ interface TranslationOutputPanelProps {
 
 export const TranslationOutputPanel: React.FC<TranslationOutputPanelProps> = ({
   status,
+  taskViews,
   translations,
   targetLanguages,
   languageModels,
   enabledModels,
 }) => {
   const { t } = useTranslation();
-  const groupedTranslations = groupTranslationsByLanguage(translations);
+  const groupedTaskViews = groupTaskViewsByLanguage(taskViews);
   const remainingSkeletonCount = Math.max(
-    getExpectedTranslationCount(targetLanguages, languageModels, enabledModels) - translations.length,
+    getExpectedTranslationCount(targetLanguages, languageModels, enabledModels) - taskViews.length,
     0,
   );
 
   return (
     <div className="flex flex-col w-full md:w-1/2 md:h-full bg-background p-3 sm:p-6 md:pl-4 md:overflow-y-auto">
       <div className="flex flex-col gap-3 sm:gap-4 pb-6 md:pb-20">
-        {status === AppStatus.IDLE && translations.length === 0 && (
+        {status === AppStatus.IDLE && taskViews.length === 0 && translations.length === 0 && (
           <div className="flex flex-col items-center justify-center h-40 sm:h-64 text-muted-foreground">
             <div className="size-12 sm:size-16 rounded-full bg-muted flex items-center justify-center mb-3 sm:mb-4">
               <Icon name="translate" size={32} className="text-2xl sm:text-3xl" />
@@ -46,12 +53,12 @@ export const TranslationOutputPanel: React.FC<TranslationOutputPanelProps> = ({
           </div>
         )}
 
-        {groupedTranslations.map((group) => (
+        {groupedTaskViews.map((group) => (
           <TranslationGroup
             key={group.language}
-            results={group.results}
-            config={resolveLanguageConfig(group.language, group.results[0]?.code || '')}
-            totalLanguages={groupedTranslations.length}
+            taskViews={group.taskViews}
+            config={resolveLanguageConfig(group.language, group.taskViews[0]?.result?.code || '')}
+            totalLanguages={groupedTaskViews.length}
             expectedCount={getExpectedCountForLanguage(group.language, languageModels, enabledModels)}
           />
         ))}
@@ -93,4 +100,21 @@ function resolveLanguageConfig(languageName: string, languageCode: string): Lang
     bgColor: '#f1f5f9',
     borderColor: '#e2e8f0',
   };
+}
+
+function groupTaskViewsByLanguage(taskViews: TranslationTaskView[]) {
+  const grouped: { language: string; taskViews: TranslationTaskView[] }[] = [];
+  const seen = new Set<string>();
+
+  taskViews.forEach((taskView) => {
+    if (!seen.has(taskView.language)) {
+      seen.add(taskView.language);
+      grouped.push({
+        language: taskView.language,
+        taskViews: taskViews.filter((item) => item.language === taskView.language),
+      });
+    }
+  });
+
+  return grouped;
 }

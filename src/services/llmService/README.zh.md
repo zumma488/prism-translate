@@ -11,6 +11,7 @@
 这个目录当前负责：
 - `createModel()` 相关的 model 实例化行为
 - 翻译请求执行辅助
+- 被 translation feature 复用的浏览器直连 Provider 执行辅助
 - 识别伪成功上游响应的 `safeFetch` 处理
 - 如 `<think>` 清理、JSON 提取与结果解析等响应清洗
 

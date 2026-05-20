@@ -1,5 +1,10 @@
 import type { AppSettings } from '@/types';
-import { validateProviders } from '@/services/providerConfigValidation';
+import { isExecutionMode, validateProviders } from '@/services/providerConfigValidation';
+import {
+  getModelSelectionKey,
+  normalizeProviders,
+  normalizeSettingsProviders,
+} from '@/services/modelIdentity';
 
 export const SETTINGS_STORAGE_KEY_V5 = 'ai-translator-settings-v5';
 export const SETTINGS_STORAGE_KEY_V6 = 'ai-translator-settings-v6';
@@ -11,6 +16,7 @@ export const EMPTY_INITIAL_SETTINGS: AppSettings = {
   activeModelKey: '',
   providers: [],
   languageModels: {},
+  executionMode: 'browser-direct',
 };
 
 export function migrateLanguageModels(parsed: Record<string, unknown>) {
@@ -26,14 +32,23 @@ export function migrateLanguageModels(parsed: Record<string, unknown>) {
 }
 
 function parseStoredSettings(raw: string): AppSettings | null {
-  const parsed = JSON.parse(raw) as AppSettings;
+  const parsed = JSON.parse(raw) as AppSettings & { executionMode?: unknown };
   migrateLanguageModels(parsed as unknown as Record<string, unknown>);
 
   if (!validateProviders(parsed.providers)) {
     return null;
   }
 
-  return parsed;
+  const providers = normalizeProviders(parsed.providers);
+
+  return {
+    activeModelKey: typeof parsed.activeModelKey === 'string' ? parsed.activeModelKey : '',
+    providers,
+    languageModels: parsed.languageModels || {},
+    executionMode: isExecutionMode(parsed.executionMode)
+      ? parsed.executionMode
+      : EMPTY_INITIAL_SETTINGS.executionMode,
+  };
 }
 
 export async function loadPersistedSettings(): Promise<AppSettings> {
@@ -74,30 +89,34 @@ export async function loadPersistedSettings(): Promise<AppSettings> {
 }
 
 export async function persistSettings(settings: AppSettings) {
-  localStorage.setItem(SETTINGS_STORAGE_KEY_V6, JSON.stringify(settings));
+  localStorage.setItem(
+    SETTINGS_STORAGE_KEY_V6,
+    JSON.stringify(normalizeSettingsProviders(settings)),
+  );
 }
 
 export function normalizeActiveModelKey(settings: AppSettings): AppSettings {
+  const normalizedSettings = normalizeSettingsProviders(settings);
   const enabledModelKeys: string[] = [];
 
-  settings.providers.forEach((provider) => {
+  normalizedSettings.providers.forEach((provider) => {
     provider.models.forEach((model) => {
       if (model.enabled !== false) {
-        enabledModelKeys.push(`${provider.id}:${model.id}`);
+        enabledModelKeys.push(getModelSelectionKey(provider.id, model));
       }
     });
   });
 
   if (enabledModelKeys.length === 0) {
-    return settings;
+    return normalizedSettings;
   }
 
-  if (enabledModelKeys.includes(settings.activeModelKey)) {
-    return settings;
+  if (enabledModelKeys.includes(normalizedSettings.activeModelKey)) {
+    return normalizedSettings;
   }
 
   return {
-    ...settings,
+    ...normalizedSettings,
     activeModelKey: enabledModelKeys[0],
   };
 }

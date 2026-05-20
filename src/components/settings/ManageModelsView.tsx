@@ -28,13 +28,13 @@ const ManageModelsView: React.FC<ManageModelsViewProps> = ({
     const { t } = useTranslation();
     const [searchQuery, setSearchQuery] = useState('');
 
-    const toggleModel = (providerId: string, modelId: string, enabled: boolean) => {
+    const toggleModel = (providerId: string, modelUid: string, enabled: boolean) => {
         const newProviders = settings.providers.map(p => {
             if (p.id !== providerId) return p;
             return {
                 ...p,
                 models: p.models.map(m => {
-                    if (m.id !== modelId) return m;
+                    if ((m.uid || m.id) !== modelUid) return m;
                     return { ...m, enabled };
                 })
             };
@@ -111,6 +111,75 @@ const ManageModelsView: React.FC<ManageModelsViewProps> = ({
                 </Button>
             </div>
 
+            <div className="px-4 sm:px-6 pb-4">
+                <div className="rounded-xl border border-border bg-card p-4 space-y-4">
+                    <div>
+                        <h3 className="text-sm font-semibold text-foreground">
+                            {t('settings.executionMode.title')}
+                        </h3>
+                        <p className="text-xs text-muted-foreground mt-1">
+                            {t('settings.executionMode.description')}
+                        </p>
+                        <p className="text-xs text-muted-foreground mt-1">
+                            {t('settings.executionMode.scopeHint')}
+                        </p>
+                    </div>
+
+                    <div className="grid gap-3">
+                        <button
+                            type="button"
+                            onClick={() => onUpdateSettings({ ...settings, executionMode: 'browser-direct' })}
+                            className={`rounded-lg border p-3 text-left transition-colors ${
+                                settings.executionMode === 'browser-direct'
+                                    ? 'border-primary bg-primary/5'
+                                    : 'border-border hover:border-primary/40'
+                            }`}
+                        >
+                            <div className="flex items-start justify-between gap-3">
+                                <div>
+                                    <div className="text-sm font-medium text-foreground">
+                                        {t('settings.executionMode.browserDirect')}
+                                    </div>
+                                    <p className="text-xs text-muted-foreground mt-1">
+                                        {t('settings.executionMode.browserDirectHint')}
+                                    </p>
+                                </div>
+                                {settings.executionMode === 'browser-direct' && (
+                                    <Icon name="check_circle" size={18} className="text-primary shrink-0" />
+                                )}
+                            </div>
+                            <p className="text-xs text-amber-700 dark:text-amber-400 mt-2">
+                                {t('settings.executionMode.browserDirectRisk')}
+                            </p>
+                        </button>
+
+                        <button
+                            type="button"
+                            onClick={() => onUpdateSettings({ ...settings, executionMode: 'server-proxy' })}
+                            className={`rounded-lg border p-3 text-left transition-colors ${
+                                settings.executionMode === 'server-proxy'
+                                    ? 'border-primary bg-primary/5'
+                                    : 'border-border hover:border-primary/40'
+                            }`}
+                        >
+                            <div className="flex items-start justify-between gap-3">
+                                <div>
+                                    <div className="text-sm font-medium text-foreground">
+                                        {t('settings.executionMode.serverProxy')}
+                                    </div>
+                                    <p className="text-xs text-muted-foreground mt-1">
+                                        {t('settings.executionMode.serverProxyHint')}
+                                    </p>
+                                </div>
+                                {settings.executionMode === 'server-proxy' && (
+                                    <Icon name="check_circle" size={18} className="text-primary shrink-0" />
+                                )}
+                            </div>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
             {/* List */}
             <div className="flex-1 overflow-y-auto px-4 sm:px-6 pb-6 space-y-6">
                 {filteredProviders.map(provider => (
@@ -143,11 +212,11 @@ const ManageModelsView: React.FC<ManageModelsViewProps> = ({
 
                         <div className="space-y-1">
                             {provider.models.map(model => (
-                                <div key={model.id} className="flex items-center justify-between py-2 pl-2 pr-2 hover:bg-accent rounded-lg group/item">
+                                <div key={model.uid || model.id} className="flex items-center justify-between py-2 pl-2 pr-2 hover:bg-accent rounded-lg group/item">
                                     <span className="text-sm text-foreground">{model.name}</span>
                                     <Switch
                                         checked={model.enabled !== false}
-                                        onCheckedChange={(checked) => toggleModel(provider.id, model.id, checked)}
+                                        onCheckedChange={(checked) => toggleModel(provider.id, model.uid || model.id, checked)}
                                     />
                                 </div>
                             ))}

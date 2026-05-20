@@ -18,6 +18,17 @@ const provider: ProviderConfig = {
   id: 'openai',
   providerType: 'openai',
   displayName: 'OpenAI',
+  executionMode: 'inherit',
+  models: [
+    { uid: 'gpt-4o', id: 'gpt-4o', name: 'GPT-4o' },
+    { uid: 'gpt-4.1-mini', id: 'gpt-4.1-mini', name: 'GPT-4.1 mini', enabled: false },
+  ],
+};
+
+const legacyProvider = {
+  id: 'openai',
+  providerType: 'openai',
+  displayName: 'OpenAI',
   models: [
     { id: 'gpt-4o', name: 'GPT-4o' },
     { id: 'gpt-4.1-mini', name: 'GPT-4.1 mini', enabled: false },
@@ -30,7 +41,7 @@ describe('settingsPersistence', () => {
       SETTINGS_STORAGE_KEY_V6,
       JSON.stringify({
         activeModelKey: 'openai:gpt-4o',
-        providers: [provider],
+        providers: [legacyProvider],
         languageModels: {
           French: 'openai:gpt-4o',
           German: ['openai:gpt-4o'],
@@ -45,6 +56,70 @@ describe('settingsPersistence', () => {
         French: ['openai:gpt-4o'],
         German: ['openai:gpt-4o'],
       },
+      executionMode: 'browser-direct',
+    });
+  });
+
+  it('defaults provider execution mode to inherit for legacy provider settings', async () => {
+    localStorage.setItem(
+      SETTINGS_STORAGE_KEY_V6,
+      JSON.stringify({
+        activeModelKey: 'openai:gpt-4o',
+        providers: [provider],
+        languageModels: {},
+        executionMode: 'browser-direct',
+      }),
+    );
+
+    await expect(loadPersistedSettings()).resolves.toEqual({
+      activeModelKey: 'openai:gpt-4o',
+      providers: [
+        {
+          ...provider,
+          executionMode: 'inherit',
+        },
+      ],
+      languageModels: {},
+      executionMode: 'browser-direct',
+    });
+  });
+
+  it('adds stable fallback uids for legacy models without breaking old model keys', async () => {
+    localStorage.setItem(
+      SETTINGS_STORAGE_KEY_V6,
+      JSON.stringify({
+        activeModelKey: 'openai:gpt-4o',
+        providers: [
+          {
+            ...legacyProvider,
+            models: [
+              { id: 'gpt-4o', name: 'GPT-4o' },
+              { id: 'gpt-4o', name: 'GPT-4o duplicate' },
+            ],
+          },
+        ],
+        languageModels: {
+          French: ['openai:gpt-4o'],
+        },
+      }),
+    );
+
+    await expect(loadPersistedSettings()).resolves.toEqual({
+      activeModelKey: 'openai:gpt-4o',
+      providers: [
+        {
+          ...legacyProvider,
+          executionMode: 'inherit',
+          models: [
+            { uid: 'gpt-4o', id: 'gpt-4o', name: 'GPT-4o' },
+            { uid: 'gpt-4o__2', id: 'gpt-4o', name: 'GPT-4o duplicate' },
+          ],
+        },
+      ],
+      languageModels: {
+        French: ['openai:gpt-4o'],
+      },
+      executionMode: 'browser-direct',
     });
   });
 
@@ -83,11 +158,30 @@ describe('settingsPersistence', () => {
       languageModels: {
         French: ['openai:gpt-4o'],
       },
+      executionMode: 'server-proxy',
     };
 
     await persistSettings(settings);
 
     expect(JSON.parse(localStorage.getItem(SETTINGS_STORAGE_KEY_V6) ?? 'null')).toEqual(settings);
+  });
+
+  it('defaults execution mode to browser direct for legacy settings', async () => {
+    localStorage.setItem(
+      SETTINGS_STORAGE_KEY_V6,
+      JSON.stringify({
+        activeModelKey: 'openai:gpt-4o',
+        providers: [provider],
+        languageModels: {},
+      }),
+    );
+
+    await expect(loadPersistedSettings()).resolves.toEqual({
+      activeModelKey: 'openai:gpt-4o',
+      providers: [provider],
+      languageModels: {},
+      executionMode: 'browser-direct',
+    });
   });
 
   it('normalizes the active model key to the first enabled model when needed', () => {
@@ -96,11 +190,13 @@ describe('settingsPersistence', () => {
         activeModelKey: 'missing:model',
         providers: [provider],
         languageModels: {},
+        executionMode: 'browser-direct',
       }),
     ).toEqual({
       activeModelKey: 'openai:gpt-4o',
       providers: [provider],
       languageModels: {},
+      executionMode: 'browser-direct',
     });
   });
 

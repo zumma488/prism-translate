@@ -16,13 +16,21 @@ Current files include:
   - result sorting and grouping
 - `translationExecutionService.ts`
   - concurrent task execution
-  - progressive result callbacks
-  - normalized error result generation
+  - browser-direct and server-proxy execution branching
+  - progressive task-view/result callbacks
+  - retry and task-error classification
+- `translationRunnerDecision.ts`
+  - target-language change decisions
+  - incremental translation eligibility checks
+- `translationTaskError.ts`
+  - localized task error mapping
+- `translationTone.ts`
+  - localized tone label mapping
 - `targetLanguagesPersistence.ts`
   - local persistence for target languages
   - validation and fallback behavior
 - `translationStreamClient.ts`
-  - translation stream request coordination with the API boundary
+  - translation stream request coordination with the API boundary for the streaming path
 
 ## Out Of Scope
 
@@ -37,6 +45,7 @@ This directory works with:
 - `../hooks/` for feature state orchestration
 - `../components/` for display
 - `../../../services/llmService/` and API/server boundaries for provider execution
+- `../../../../app/api/translate/task/route.ts` for per-task proxy execution
 
 ## Adjacent Modules
 

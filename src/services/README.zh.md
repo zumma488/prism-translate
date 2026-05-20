@@ -13,6 +13,8 @@
 - Provider model 创建辅助
 - `safeFetch` 类请求兜底
 - 配置导入导出支持
+- 翻译执行模式解析
+- 稳定 provider/model 标识规范化
 - 旧配置格式兼容辅助
 
 ## 非职责范围
@@ -27,9 +29,11 @@
 关键文件：
 - `configIO.ts`
 - `crypto.ts`
+- `executionMode.ts`
 - `llmService/index.ts`
 - `llmService/providers.ts`
 - `llmService/safeFetch.ts`
+- `modelIdentity.ts`
 
 ## 相邻模块关系
 

@@ -43,6 +43,7 @@
 围绕该目录的重要入口包括：
 - `src/App.tsx`
 - `src/main.tsx`
+- `src/app/providers/AppProviders.tsx`
 - `src/types.ts`
 - `src/constants.ts`
 - `src/features/`
@@ -54,6 +55,7 @@
 ## 相邻模块关系
 
 - `../app/` 提供路由、布局与 API Handlers。
+- `../app/settings/` 提供路由化设置中心壳层与页面入口，包括 `/settings/general`、`/settings/languages`、`/settings/providers`、`/settings/providers/select`、`/settings/providers/new`、`/settings/providers/[providerId]`、`/settings/providers/models` 与 `/settings/about`。
 - `../server/` 提供 API 背后的翻译与 Provider 执行逻辑。
 - `./features/` 定义面向业务能力的前端边界。
 - `./services/` 提供共享配置与 LLM 访问基础设施。

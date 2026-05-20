@@ -2,15 +2,17 @@ import React from 'react'
 import { useTranslation } from 'react-i18next'
 import { Card } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
-import { LanguageConfig, TranslationResult } from '@/types'
+import { LanguageConfig, TranslationTaskView } from '@/types'
 import TranslationCard from './TranslationCard'
 import { Icon } from '@/components/ui/icon'
+import { getTranslationTaskErrorMessage } from '@/features/translation/services/translationTaskError'
+import { getLocalizedToneLabel } from '@/features/translation/services/translationTone'
 
 interface TranslationGroupProps {
-    results: TranslationResult[]
+    taskViews: TranslationTaskView[]
     config: LanguageConfig
     totalLanguages: number
-    expectedCount?: number // The expected number of translations for this language
+    expectedCount?: number
 }
 
 /**
@@ -19,20 +21,17 @@ interface TranslationGroupProps {
  * - Multiple results: renders a vertical list of results
  */
 const TranslationGroup: React.FC<TranslationGroupProps> = ({
-    results,
+    taskViews,
     config,
     totalLanguages,
-    expectedCount = results.length,
+    expectedCount = taskViews.length,
 }) => {
     const { t } = useTranslation()
 
-    // Single result: just render TranslationCard directly
-    // ONLY downgrade if we EXPECT exactly 1 result, otherwise keep the group UI for consistency
-    // even while waiting for other results
-    if (expectedCount === 1 && results.length === 1) {
+    if (expectedCount === 1 && taskViews.length === 1) {
         return (
             <TranslationCard
-                data={results[0]}
+                taskView={taskViews[0]}
                 config={config}
                 totalLanguages={totalLanguages}
             />
@@ -57,11 +56,11 @@ const TranslationGroup: React.FC<TranslationGroupProps> = ({
                     </div>
                 </div>
 
-                {results.map((result, idx) => (
-                    <React.Fragment key={`${result.modelName}-${idx}`}>
+                {taskViews.map((taskView, idx) => (
+                    <React.Fragment key={taskView.taskKey}>
                         {idx > 0 && <Separator className="bg-border/60" />}
                         <div className="relative p-3 sm:p-5 hover:bg-muted/5 transition-colors">
-                            <ResultContent result={result} t={t} totalCount={expectedCount} index={idx} totalLanguages={totalLanguages} />
+                            <ResultContent taskView={taskView} t={t} totalCount={expectedCount} totalLanguages={totalLanguages} />
                         </div>
                     </React.Fragment>
                 ))}
@@ -72,44 +71,70 @@ const TranslationGroup: React.FC<TranslationGroupProps> = ({
 
 const COLLAPSE_THRESHOLD = 200
 
-const ResultContent: React.FC<{ result: TranslationResult, t: any, totalCount: number, index: number, totalLanguages: number }> = ({ result, t, totalCount, index, totalLanguages }) => {
+const ResultContent: React.FC<{ taskView: TranslationTaskView, t: any, totalCount: number, totalLanguages: number }> = ({ taskView, t, totalCount, totalLanguages }) => {
     const [isVisible, setIsVisible] = React.useState(true)
     const [isExpanded, setIsExpanded] = React.useState(false)
+    const result = taskView.result
 
-    // Only enable collapsing when multiple languages OR multiple models are active AND text is long
-    const shouldEnableCollapse = (totalLanguages > 1 || totalCount > 1) && result.text.length > COLLAPSE_THRESHOLD
+    const text = result?.text || ''
+    const code = result?.code || ''
+    const errorMessage = getTranslationTaskErrorMessage(taskView, t)
+    const localizedTone = result?.tone ? getLocalizedToneLabel(t, result.tone) : ''
+    const providerModelLabel =
+        taskView.providerName && taskView.modelName
+            ? `${taskView.providerName}/${taskView.modelName}`
+            : taskView.providerName || taskView.modelName || ''
+    const shouldEnableCollapse = (totalLanguages > 1 || totalCount > 1) && text.length > COLLAPSE_THRESHOLD
     const isCollapsed = shouldEnableCollapse && !isExpanded
+    const showError = taskView.status === 'error'
+    const showPendingState = taskView.status === 'pending' || taskView.status === 'running' || taskView.status === 'retrying'
 
     return (
         <div className="flex flex-col h-full animate-in fade-in-50 duration-200 slide-in-from-left-1">
-            {result.error ? (
+            {showError ? (
                 <div className="mt-2 flex items-start gap-2 p-3 rounded-lg bg-destructive/10 border border-destructive/20">
                     <Icon name="error" size={20} className="text-destructive shrink-0" />
                     <div className="min-w-0">
                         <p className="text-sm font-medium text-destructive">{t('translation.output.error', 'Translation Failed')}</p>
-                        <p className="text-xs text-destructive/80 mt-1 break-all">{result.error}</p>
+                        <p className="text-xs text-destructive/80 mt-1 break-all">{errorMessage}</p>
+                        {taskView.errorCode && taskView.error ? (
+                            <p className="text-[11px] text-destructive/70 mt-2 break-all">
+                                {taskView.error}
+                            </p>
+                        ) : null}
                     </div>
                 </div>
             ) : (
                 <div className="relative">
                     <div className="flex items-center justify-between gap-2 mb-2">
                         <div className="flex items-center gap-2 flex-wrap opacity-80">
-                            <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-muted text-muted-foreground border border-border/50">
-                                <span className="text-[10px] font-medium">{result.modelName || 'Unknown'}</span>
-                            </div>
-                            {result.tone && (
+                            {providerModelLabel && (
                                 <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-muted text-muted-foreground border border-border/50">
-                                    {result.tone}
+                                    {t('translation.output.provider.label')}: {providerModelLabel}
                                 </span>
                             )}
-                            {result.confidence && (
+                            {result?.tone && (
+                                <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-muted text-muted-foreground border border-border/50">
+                                    {t('translation.output.tone.label')}: {localizedTone}
+                                </span>
+                            )}
+                            {typeof result?.confidence === 'number' && result.confidence > 0 && (
                                 <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-primary/5 text-primary border border-primary/20">
-                                    {result.confidence}%
+                                    {t('translation.output.confidence.label')}: {result.confidence}%
                                 </span>
                             )}
-                            {result.providerName && (
-                                <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium text-muted-foreground/70">
-                                    via {result.providerName}
+                            {taskView.status !== 'success' && (
+                                <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium border ${
+                                    taskView.status === 'error'
+                                        ? 'bg-destructive/10 text-destructive border-destructive/20'
+                                        : taskView.status === 'pending'
+                                          ? 'bg-muted/40 text-muted-foreground border-border/60'
+                                          : 'bg-amber-500/10 text-amber-700 border-amber-500/20 dark:text-amber-400'
+                                }`}>
+                                    {taskView.status === 'running' && t('translation.output.status.running')}
+                                    {taskView.status === 'retrying' && t('translation.output.status.retrying', { count: taskView.retryCount })}
+                                    {taskView.status === 'pending' && t('translation.output.status.pending')}
+                                    {taskView.status === 'error' && t('translation.output.status.failed')}
                                 </span>
                             )}
                         </div>
@@ -117,26 +142,28 @@ const ResultContent: React.FC<{ result: TranslationResult, t: any, totalCount: n
                         <div className="flex gap-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity z-10">
                             <button
                                 className="inline-flex items-center justify-center h-7 w-7 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-colors cursor-pointer"
-                                onClick={() => navigator.clipboard.writeText(result.text)}
+                                onClick={() => text && navigator.clipboard.writeText(text)}
                                 title={t('translation.output.copy')}
                                 type="button"
+                                disabled={!text}
                             >
                                 <Icon name="content_copy" size={16} />
                             </button>
                             <button
                                 className="inline-flex items-center justify-center h-7 w-7 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-colors cursor-pointer"
                                 onClick={() => {
-                                    if ('speechSynthesis' in window) {
-                                        const utterance = new SpeechSynthesisUtterance(result.text)
+                                    if (text && 'speechSynthesis' in window) {
+                                        const utterance = new SpeechSynthesisUtterance(text)
                                         const voices = window.speechSynthesis.getVoices()
-                                        const langVoice = voices.find((v) => v.lang.startsWith(result.code))
+                                        const langVoice = voices.find((v) => v.lang.startsWith(code))
                                         if (langVoice) utterance.voice = langVoice
-                                        utterance.lang = result.code
+                                        utterance.lang = code
                                         window.speechSynthesis.speak(utterance)
                                     }
                                 }}
                                 title={t('translation.output.listen')}
                                 type="button"
+                                disabled={!text}
                             >
                                 <Icon name="volume_up" size={16} />
                             </button>
@@ -151,11 +178,31 @@ const ResultContent: React.FC<{ result: TranslationResult, t: any, totalCount: n
                         </div>
                     </div>
 
-                    {isVisible ? (
+                    {showPendingState ? (
+                        <div className="rounded-lg border border-dashed border-border bg-muted/30 p-3">
+                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                                <Icon
+                                    name="progress_activity"
+                                    size={16}
+                                    className="animate-spin"
+                                />
+                                <span>
+                                    {taskView.status === 'retrying'
+                                        ? t('translation.output.retryingMessage', { count: taskView.retryCount })
+                                        : t('translation.output.runningMessage')}
+                                </span>
+                            </div>
+                            {taskView.error && (
+                                <p className="mt-2 text-xs text-muted-foreground break-all">
+                                    {taskView.error}
+                                </p>
+                            )}
+                        </div>
+                    ) : isVisible ? (
                         <>
                             <div className="relative">
                                 <p className={`text-base leading-relaxed text-foreground whitespace-pre-wrap animate-in fade-in zoom-in-95 duration-200 ${isCollapsed ? 'line-clamp-6' : ''}`}>
-                                    {result.text}
+                                    {text}
                                 </p>
                                 {isCollapsed && (
                                     <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-card to-transparent pointer-events-none" />

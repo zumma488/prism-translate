@@ -12,8 +12,8 @@ Current hooks include:
 - `useAppSettings`
   - settings loading
   - persistence triggering
-  - settings modal state
   - active model selection
+  - active model normalization
   - language-model binding updates
 - `useSettingsImportExport`
   - import/export flow

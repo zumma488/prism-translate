@@ -8,7 +8,24 @@ This directory represents settings-specific UI components and the intended bound
 
 ## Current Responsibilities
 
-The current implementation is still mostly located in:
+The current implementation is currently split between routed settings page clients here and legacy reusable views in `src/components/settings/`.
+
+Key routed settings page clients include:
+- `SettingsShell.tsx`
+- `SettingsPageHeader.tsx`
+- `GeneralSettingsPageClient.tsx`
+- `LanguageSettingsPageClient.tsx`
+- `ProviderSettingsPageClient.tsx`
+- `ProviderModelsPageClient.tsx`
+- `ConnectProviderPageClient.tsx`
+- `ProviderEditorPageClient.tsx`
+- `AboutSettingsPageClient.tsx`
+- `ExecutionModeSettingsCard.tsx`
+- `FetchedModelsSelectionDialog.tsx`
+- `ImportConflictDialog.tsx`
+- `SettingsToast.tsx`
+
+Reusable compatibility views and dialogs still include:
 - `src/components/SettingsModal.tsx`
 - `src/components/settings/ConnectProviderView.tsx`
 - `src/components/settings/EditProviderView.tsx`
@@ -16,9 +33,13 @@ The current implementation is still mostly located in:
 
 This area is responsible for:
 - settings UI composition
-- provider edit flows
-- provider connection flows
+- the routed settings shell for `/settings/general`, `/settings/languages`, `/settings/providers`, and `/settings/about`
+- provider list and navigation flows
+- provider selection and provider create/edit page flows
 - model management views
+- execution-mode selection UI
+- fetched-model selection dialogs and import/export feedback affordances
+- mobile settings-shell navigation and sheet accessibility wiring
 
 ## Out Of Scope
 
@@ -29,7 +50,7 @@ This directory should not directly own:
 
 ## Current Code Mapping
 
-Settings UI still spans both this feature boundary and `src/components/settings/`.
+Settings UI still spans both this feature boundary and `src/components/settings/`. The current routed flow is settings shell -> general/languages/providers/about, and the provider sub-flow is list -> select -> create/edit -> model management.
 
 ## Adjacent Modules
 

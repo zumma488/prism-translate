@@ -4,6 +4,7 @@ export interface TranslationResult {
   text: string;
   tone: string;
   confidence: number;
+  taskKey?: string;
   modelName?: string;
   providerName?: string;
   error?: string;
@@ -58,6 +59,7 @@ export interface ProviderDeployment {
 }
 
 export interface ModelDefinition {
+  uid?: string;
   id: string;
   name: string;
   enabled?: boolean;
@@ -76,6 +78,7 @@ export interface ProviderConfig {
   providerType: ProviderType;
   displayName: string;
   models: ModelDefinition[];
+  executionMode?: ProviderExecutionMode;
   connection?: ProviderConnection;
   credentials?: ProviderCredentials;
   account?: ProviderAccount;
@@ -86,6 +89,30 @@ export interface AppSettings {
   providers: ProviderConfig[];
   activeModelKey: string;
   languageModels?: Record<string, string[]>;
+  executionMode: TranslationExecutionMode;
+}
+
+export type TranslationExecutionMode = 'browser-direct' | 'server-proxy';
+export type ProviderExecutionMode = 'inherit' | TranslationExecutionMode;
+
+export type TranslationTaskStatus =
+  | 'pending'
+  | 'running'
+  | 'retrying'
+  | 'success'
+  | 'error';
+
+export interface TranslationTaskView {
+  taskKey: string;
+  language: string;
+  modelKey: string;
+  modelName: string;
+  providerName: string;
+  status: TranslationTaskStatus;
+  retryCount: number;
+  result?: TranslationResult;
+  errorCode?: 'browser_direct_not_supported' | 'missing_model';
+  error?: string;
 }
 
 export interface LanguageConfig {
@@ -110,6 +137,15 @@ export interface TranslationRequestPayload {
   languageModels: Record<string, string[]>;
   activeModelKey: string;
   providers: ProviderConfig[];
+}
+
+export interface SingleTranslationRequestPayload {
+  text: string;
+  targetLanguage: string;
+  provider: ProviderConfig;
+  modelId: string;
+  modelName: string;
+  providerName: string;
 }
 
 export interface FetchProviderModelsPayload {

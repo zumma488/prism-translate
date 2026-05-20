@@ -11,6 +11,7 @@
 This directory currently owns:
 - `createModel()` model instantiation behavior
 - translation request execution helpers
+- browser-direct provider execution helpers consumed by the translation feature
 - `safeFetch` handling for pseudo-success upstream responses
 - response cleanup such as `<think>` removal, JSON extraction, and result parsing
 

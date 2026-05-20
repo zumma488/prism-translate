@@ -112,15 +112,15 @@ const TranslationInput: React.FC<TranslationInputProps> = ({
   }
 
   return (
-    <div className="flex flex-col w-full md:w-1/2 md:h-full bg-background p-3 sm:p-6 md:pr-4 md:overflow-y-auto">
-      <div className="flex flex-col bg-card rounded-xl border border-border shadow-sm focus-within:ring-2 focus-within:ring-ring/20 focus-within:border-ring transition-all duration-200">
+    <div className="flex w-full flex-col bg-transparent p-3 sm:p-6 md:h-full md:w-1/2 md:overflow-y-auto md:pr-4">
+      <div className="flex flex-col rounded-2xl border border-border/70 bg-card/85 shadow-[var(--shadow-soft)] backdrop-blur transition-all duration-200 focus-within:border-ring/70 focus-within:ring-2 focus-within:ring-ring/20">
         <div className="relative">
           <Textarea
             ref={textAreaRef}
             value={inputText}
             onChange={(e) => onInputChange(e.target.value)}
             onKeyDown={handleKeyDown}
-            className="w-full p-4 sm:p-5 md:p-6 resize-none bg-transparent border-none outline-none text-base md:text-lg leading-relaxed placeholder:text-muted-foreground/50 text-foreground overflow-y-auto shadow-none focus-visible:ring-0 min-h-[150px]"
+            className="min-h-[150px] w-full resize-none overflow-y-auto border-none bg-transparent p-4 text-base leading-relaxed text-foreground shadow-none outline-none placeholder:text-muted-foreground/50 focus-visible:ring-0 sm:p-5 md:p-6 md:text-lg"
             placeholder={t('translation.input.placeholder')}
             maxLength={5000}
             rows={1}
@@ -129,7 +129,7 @@ const TranslationInput: React.FC<TranslationInputProps> = ({
         </div>
 
         {/* Toolbar - Optimized Layout */}
-        <div className="p-2.5 sm:p-3 bg-muted/50 border-t border-border rounded-b-xl flex flex-col gap-2">
+        <div className="flex flex-col gap-2 rounded-b-2xl border-t border-border/70 bg-muted/45 p-2.5 sm:p-3">
           {/* Row 1: Source + Actions */}
           <div className="flex items-center justify-between gap-2">
             <div className="flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm text-muted-foreground min-w-0 flex-wrap">

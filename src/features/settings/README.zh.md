@@ -12,9 +12,14 @@
 - Provider 的新增、编辑、删除
 - 模型列表管理
 - OpenAI 与兼容 Provider 的协议模式选择
+- 全局翻译执行模式
 - 默认模型选择与语言模型绑定
+- Provider 模型拉取与拉取模型合并流程
 - settings 导入导出流程
 - 持久化与迁移协同
+- `app/settings/*` 下路由化设置中心页面的组合
+- 面向持久化 settings 的稳定 provider/model 标识规范化
+- 选择提供商、新建/编辑提供商，以及提供商模型管理的页面流转
 
 ## 非职责范围
 
@@ -26,6 +31,16 @@
 ## 当前代码映射
 
 settings 相关实现当前分布在：
+- `app/settings/`
+- `app/settings/layout.tsx`
+- `app/settings/general/page.tsx`
+- `app/settings/languages/page.tsx`
+- `app/settings/providers/page.tsx`
+- `app/settings/providers/select/page.tsx`
+- `app/settings/providers/new/page.tsx`
+- `app/settings/providers/[providerId]/page.tsx`
+- `app/settings/providers/models/page.tsx`
+- `app/settings/about/page.tsx`
 - `src/features/settings/components/`
 - `src/features/settings/hooks/`
 - `src/features/settings/services/`

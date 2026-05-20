@@ -43,6 +43,7 @@ Those belong in `app/`, `server/`, or external secret storage.
 Important entry points around this directory:
 - `src/App.tsx`
 - `src/main.tsx`
+- `src/app/providers/AppProviders.tsx`
 - `src/types.ts`
 - `src/constants.ts`
 - `src/features/`
@@ -54,6 +55,7 @@ Important entry points around this directory:
 ## Adjacent Modules
 
 - `../app/` provides routes, layout, and API handlers.
+- `../app/settings/` provides the routed settings center shell and page entrypoints, including `/settings/general`, `/settings/languages`, `/settings/providers`, `/settings/providers/select`, `/settings/providers/new`, `/settings/providers/[providerId]`, `/settings/providers/models`, and `/settings/about`.
 - `../server/` provides translation and provider execution logic behind the API layer.
 - `./features/` defines business-oriented frontend capabilities.
 - `./services/` provides shared config and LLM access infrastructure.

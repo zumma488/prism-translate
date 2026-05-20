@@ -1,4 +1,11 @@
-import { useEffect, useRef, useState } from 'react';
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+  type ReactNode,
+} from 'react';
 import { AppSettings } from '../../../types';
 import {
   EMPTY_INITIAL_SETTINGS,
@@ -7,8 +14,17 @@ import {
   persistSettings,
 } from '../services/settingsPersistence';
 
-export function useAppSettings() {
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+interface AppSettingsContextValue {
+  settings: AppSettings;
+  settingsLoaded: boolean;
+  saveSettings: (nextSettings: AppSettings) => void;
+  selectActiveModel: (activeModelKey: string) => void;
+  updateLanguageModels: (language: string, modelIds: string[]) => void;
+}
+
+const AppSettingsContext = createContext<AppSettingsContextValue | null>(null);
+
+export function AppSettingsProvider({ children }: { children: ReactNode }) {
   const [settingsLoaded, setSettingsLoaded] = useState(false);
   const settingsInitialized = useRef(false);
   const [settings, setSettings] = useState<AppSettings>(EMPTY_INITIAL_SETTINGS);
@@ -57,14 +73,6 @@ export function useAppSettings() {
     void savePersistedSettings();
   }, [settings, settingsLoaded]);
 
-  const openSettings = () => {
-    setIsSettingsOpen(true);
-  };
-
-  const closeSettings = () => {
-    setIsSettingsOpen(false);
-  };
-
   const saveSettings = (nextSettings: AppSettings) => {
     setSettings(normalizeActiveModelKey(nextSettings));
   };
@@ -90,14 +98,27 @@ export function useAppSettings() {
     });
   };
 
-  return {
-    closeSettings,
-    isSettingsOpen,
-    settingsLoaded,
-    openSettings,
-    saveSettings,
-    selectActiveModel,
-    settings,
-    updateLanguageModels,
-  };
+  return (
+    <AppSettingsContext.Provider
+      value={{
+        settings,
+        settingsLoaded,
+        saveSettings,
+        selectActiveModel,
+        updateLanguageModels,
+      }}
+    >
+      {children}
+    </AppSettingsContext.Provider>
+  );
+}
+
+export function useAppSettings() {
+  const context = useContext(AppSettingsContext);
+
+  if (!context) {
+    throw new Error('useAppSettings must be used within AppSettingsProvider');
+  }
+
+  return context;
 }

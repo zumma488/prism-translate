@@ -13,7 +13,9 @@ This module currently owns:
 - target language selection and persistence coordination
 - language-to-model binding resolution
 - translation task creation
-- translation execution coordination
+- task-view state creation and ordering
+- execution-mode-aware translation coordination
+- incremental translation when users add target languages after a completed run
 - result grouping, sorting, and comparison display support
 
 ## Out Of Scope
@@ -32,6 +34,7 @@ Translation behavior currently spans:
 - `src/features/translation/components/`
 - `src/features/translation/hooks/`
 - `src/features/translation/services/`
+- `app/api/translate/task/route.ts`
 - `src/components/TranslationInput.tsx`
 - `src/App.tsx`
 - `src/types.ts`

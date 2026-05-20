@@ -1,4 +1,6 @@
 import React, { useState } from 'react'
+import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { useTranslation } from 'react-i18next'
 import { ProviderConfig } from '../types'
 import LanguageSwitcher from './LanguageSwitcher'
@@ -29,7 +31,6 @@ interface HeaderProps {
   currentModel?: ModelItem
   activeModelKey: string
   onModelSelect: (uniqueId: string) => void
-  onOpenSettings: () => void
 }
 
 const Header: React.FC<HeaderProps> = ({
@@ -37,9 +38,9 @@ const Header: React.FC<HeaderProps> = ({
   currentModel,
   activeModelKey,
   onModelSelect,
-  onOpenSettings,
 }) => {
   const { t } = useTranslation()
+  const router = useRouter()
   const [isModelDropdownOpen, setIsModelDropdownOpen] = useState(false)
 
   const handleModelClick = (uniqueId: string) => {
@@ -48,23 +49,23 @@ const Header: React.FC<HeaderProps> = ({
   }
 
   const handleManageClick = () => {
-    onOpenSettings()
+    router.push('/settings/providers/models')
     setIsModelDropdownOpen(false)
   }
 
   return (
-    <header className="sticky top-0 z-40 flex items-center justify-between border-b border-border bg-background/80 backdrop-blur-md px-3 sm:px-6 py-3 sm:py-4 shrink-0">
+    <header className="sticky top-0 z-40 flex min-h-16 shrink-0 items-center justify-between border-b border-border/60 bg-background/82 px-4 py-2.5 backdrop-blur-md sm:px-6">
       <div className="flex items-center gap-2 sm:gap-3">
-        <div className="flex items-center justify-center size-8 sm:size-9 rounded-lg bg-primary text-primary-foreground">
+        <div className="flex size-9 items-center justify-center rounded-full bg-primary text-primary-foreground">
           <Icon name="translate" size={18} />
         </div>
-        <h1 className="hidden sm:block text-lg font-semibold tracking-tight">
+        <h1 className="hidden text-lg font-bold tracking-tight text-foreground sm:block">
           {t('header.title')}
         </h1>
       </div>
 
-      <div className="flex items-center gap-2 sm:gap-6">
-        <div className="flex items-center gap-2">
+      <div className="flex items-center gap-1.5 sm:gap-2">
+        <div className="flex items-center gap-1.5">
           <DropdownMenu
             open={isModelDropdownOpen}
             onOpenChange={setIsModelDropdownOpen}
@@ -72,12 +73,12 @@ const Header: React.FC<HeaderProps> = ({
             <DropdownMenuTrigger asChild>
               <Button
                 variant="outline"
-                className="flex items-center gap-2 h-10 px-3 sm:px-4 rounded-xl bg-secondary/50 border-0 hover:bg-secondary/80 transition-colors text-sm font-semibold justify-between min-w-[160px]"
+                className="flex h-9 min-w-[148px] justify-between gap-2 border-border/70 bg-card/65 px-3 text-sm font-semibold shadow-none backdrop-blur hover:border-primary/25 hover:bg-card/90 sm:min-w-[180px] sm:px-4"
                 title={t('header.changeModel')}
               >
-                <div className="flex items-center gap-2 min-w-0">
-                  <Icon name="neurology" size={20} className="text-primary shrink-0" />
-                  <span className="truncate max-w-[120px]">
+                <div className="flex min-w-0 items-center gap-2">
+                  <Icon name="neurology" size={18} className="shrink-0 text-primary" />
+                  <span className="max-w-[92px] truncate sm:max-w-[132px]">
                     {currentModel
                       ? currentModel.modelName
                       : t('header.selectModel')}
@@ -85,13 +86,13 @@ const Header: React.FC<HeaderProps> = ({
                 </div>
                 <Icon
                   name={isModelDropdownOpen ? 'expand_less' : 'expand_more'}
-                  size={20}
+                  size={18}
                   className="text-muted-foreground transition-transform duration-200"
                 />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-72" align="end">
-              <DropdownMenuLabel className="flex items-center justify-between">
+            <DropdownMenuContent className="w-72" align="end" sideOffset={8}>
+              <DropdownMenuLabel className="flex items-center justify-between px-3 py-2">
                 <span>{t('header.selectModel')}</span>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
@@ -128,19 +129,15 @@ const Header: React.FC<HeaderProps> = ({
                 className="cursor-pointer text-primary focus:text-primary"
               >
                 <Icon name="settings" size={16} className="mr-2" />
-                {t('header.manage')}
+                {t('header.manageModels')}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
 
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={onOpenSettings}
-            className="size-10 rounded-xl"
-            title={t('header.settings')}
-          >
-            <Icon name="tune" size={20} />
+          <Button variant="outline" size="icon" asChild className="size-9 border-border/60 bg-card/55 text-muted-foreground shadow-none backdrop-blur hover:border-primary/25 hover:bg-card/90 hover:text-foreground">
+            <Link href="/settings" title={t('header.settings')}>
+              <Icon name="settings" size={18} />
+            </Link>
           </Button>
         </div>
 

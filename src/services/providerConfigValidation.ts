@@ -5,6 +5,7 @@ const PROVIDER_KEYS = new Set([
   'providerType',
   'displayName',
   'models',
+  'executionMode',
   'connection',
   'credentials',
   'account',
@@ -15,7 +16,7 @@ const CONNECTION_KEYS = new Set(['baseUrl', 'protocol', 'headers']);
 const CREDENTIAL_KEYS = new Set(['apiKey', 'accessKeyId', 'secretAccessKey']);
 const ACCOUNT_KEYS = new Set(['accountId']);
 const DEPLOYMENT_KEYS = new Set(['resourceName', 'projectId', 'location', 'region']);
-const MODEL_KEYS = new Set(['id', 'name', 'enabled', 'capabilities']);
+const MODEL_KEYS = new Set(['uid', 'id', 'name', 'enabled', 'capabilities']);
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
@@ -51,6 +52,7 @@ function isModelDefinition(value: unknown) {
   }
 
   return (
+    isOptionalString(value.uid) &&
     typeof value.id === 'string' &&
     typeof value.name === 'string' &&
     isOptionalBoolean(value.enabled) &&
@@ -92,6 +94,10 @@ export function isProviderConfig(value: unknown): value is ProviderConfig {
   const deployment = value.deployment as Record<string, unknown> | undefined;
 
   return (
+    (value.executionMode === undefined ||
+      value.executionMode === 'inherit' ||
+      value.executionMode === 'browser-direct' ||
+      value.executionMode === 'server-proxy') &&
     isOptionalString(connection?.baseUrl) &&
     (connection?.protocol === undefined ||
       connection.protocol === 'responses' ||
@@ -112,3 +118,12 @@ export function validateProviders(providers: unknown): providers is ProviderConf
   return Array.isArray(providers) && providers.every(isProviderConfig);
 }
 
+export function isExecutionMode(value: unknown): value is 'browser-direct' | 'server-proxy' {
+  return value === 'browser-direct' || value === 'server-proxy';
+}
+
+export function isProviderExecutionMode(
+  value: unknown,
+): value is 'inherit' | 'browser-direct' | 'server-proxy' {
+  return value === 'inherit' || isExecutionMode(value);
+}

@@ -87,7 +87,7 @@ const ConnectProviderView: React.FC<ConnectProviderViewProps> = ({ onSelectType,
                 <Button variant="ghost" size="icon" onClick={onCancel}>
                     <Icon name="arrow_back" size={20} />
                 </Button>
-                <h2 className="text-xl font-bold text-foreground tracking-tight">{t('settings.connectProvider')}</h2>
+                <h2 className="text-xl font-bold text-foreground tracking-tight">{t('settings.selectProvider')}</h2>
             </div>
 
             {/* Search */}

@@ -1,11 +1,29 @@
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { generateId } from '@/lib/utils';
+import {
+  createModelUid,
+  normalizeModelDefinitions,
+} from '@/services/modelIdentity';
+import {
+  DEFAULT_PROVIDER_EXECUTION_MODE,
+  resolveProviderExecutionMode,
+} from '@/services/executionMode';
+import { fetchProviderModelsForExecutionMode } from '@/features/settings/services/fetchProviderModels';
+import { FetchedModelsSelectionDialog } from '@/features/settings/components/FetchedModelsSelectionDialog';
+import {
+  buildSelectableFetchedModels,
+  mergeSelectedFetchedModels,
+  selectAllNewFetchedModels,
+  toggleSelectableFetchedModel,
+  type SelectableFetchedProviderModel,
+} from '@/features/settings/services/providerFetchedModels';
 import type {
-  FetchProviderModelsPayload,
   ModelDefinition,
+  ProviderExecutionMode,
   ProviderType,
   ProviderConfig,
+  TranslationExecutionMode,
 } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -13,31 +31,29 @@ import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { Switch } from '@/components/ui/switch';
 import { Icon } from '@/components/ui/icon';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
 
 interface EditProviderViewProps {
   initialConfig: Partial<ProviderConfig> & { providerType: ProviderType };
+  globalExecutionMode: TranslationExecutionMode;
   onSave: (config: ProviderConfig) => void;
   onDelete: (id: string) => void;
   onBack: () => void;
   existingIds: string[];
 }
 
+interface ProviderModelDraft extends ModelDefinition {
+  uid: string;
+}
+
 interface ProviderDraft {
   id: string;
   providerType: ProviderType;
   name: string;
+  executionMode: ProviderExecutionMode;
   apiKey: string;
   baseUrl: string;
   protocol: 'responses' | 'chat';
-  models: ModelDefinition[];
+  models: ProviderModelDraft[];
   headers: Record<string, string>;
   accountId: string;
   accessKeyId: string;
@@ -48,17 +64,25 @@ interface ProviderDraft {
   region: string;
 }
 
+function toDraftModels(models: ModelDefinition[]) {
+  return normalizeModelDefinitions(models).map((model) => ({
+    ...model,
+    uid: model.uid || createModelUid(),
+  }));
+}
+
 function toDraft(initialConfig: Partial<ProviderConfig> & { providerType: ProviderType }): ProviderDraft {
   return {
     id: initialConfig.id || generateId(),
     providerType: initialConfig.providerType,
     name: initialConfig.displayName || '',
+    executionMode: initialConfig.executionMode || DEFAULT_PROVIDER_EXECUTION_MODE,
     apiKey: initialConfig.credentials?.apiKey || '',
     baseUrl: initialConfig.connection?.baseUrl || '',
     protocol:
       initialConfig.connection?.protocol ||
       (initialConfig.providerType === 'openai' ? 'responses' : 'chat'),
-    models: initialConfig.models || [],
+    models: toDraftModels(initialConfig.models || []),
     headers: initialConfig.connection?.headers || {},
     accountId: initialConfig.account?.accountId || '',
     accessKeyId: initialConfig.credentials?.accessKeyId || '',
@@ -72,24 +96,31 @@ function toDraft(initialConfig: Partial<ProviderConfig> & { providerType: Provid
 
 const EditProviderView: React.FC<EditProviderViewProps> = ({
   initialConfig,
+  globalExecutionMode,
   onSave,
   onBack,
 }) => {
   const { t } = useTranslation();
   const [draft, setDraft] = useState<ProviderDraft>(() => toDraft(initialConfig));
   const [enableCustomBaseUrl, setEnableCustomBaseUrl] = useState(Boolean(initialConfig.connection?.baseUrl));
-  const [newModelId, setNewModelId] = useState('');
-  const [newModelName, setNewModelName] = useState('');
-  const [isModelModalOpen, setIsModelModalOpen] = useState(false);
-  const [fetchedModels, setFetchedModels] = useState<ModelDefinition[]>([]);
-  const [selectedFetchedModels, setSelectedFetchedModels] = useState<string[]>([]);
+  const [modelRowErrors, setModelRowErrors] = useState<Record<string, string>>({});
+  const [modelsValidationMessage, setModelsValidationMessage] = useState<string | null>(null);
   const [isFetchingModels, setIsFetchingModels] = useState(false);
   const [fetchError, setFetchError] = useState<string | null>(null);
+  const [fetchedModelsSelection, setFetchedModelsSelection] = useState<
+    SelectableFetchedProviderModel[]
+  >([]);
+  const [isFetchedModelsDialogOpen, setIsFetchedModelsDialogOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
     setDraft(toDraft(initialConfig));
     setEnableCustomBaseUrl(Boolean(initialConfig.connection?.baseUrl));
+    setModelRowErrors({});
+    setModelsValidationMessage(null);
+    setFetchError(null);
+    setFetchedModelsSelection([]);
+    setIsFetchedModelsDialogOpen(false);
   }, [initialConfig]);
 
   useEffect(() => {
@@ -113,31 +144,70 @@ const EditProviderView: React.FC<EditProviderViewProps> = ({
     setDraft((current) => ({ ...current, ...patch }));
   };
 
-  const handleAddModel = () => {
-    if (!newModelId.trim()) {
-      return;
+  const clearModelValidation = (uid?: string) => {
+    if (uid) {
+      setModelRowErrors((current) => {
+        if (!(uid in current)) {
+          return current;
+        }
+
+        const next = { ...current };
+        delete next[uid];
+        return next;
+      });
+    } else {
+      setModelRowErrors({});
     }
 
-    const model: ModelDefinition = {
-      id: newModelId,
-      name: newModelName || newModelId,
-      enabled: true,
-    };
-
-    updateDraft({ models: [...draft.models, model] });
-    setNewModelId('');
-    setNewModelName('');
+    setModelsValidationMessage(null);
   };
 
-  const removeModel = (index: number) => {
-    updateDraft({ models: draft.models.filter((_, currentIndex) => currentIndex !== index) });
+  const addModelRow = () => {
+    clearModelValidation();
+    updateDraft({
+      models: [
+        ...draft.models,
+        {
+          uid: createModelUid(),
+          id: '',
+          name: '',
+          enabled: true,
+        },
+      ],
+    });
+  };
+
+  const updateModelRow = (uid: string, patch: Partial<ProviderModelDraft>) => {
+    clearModelValidation(uid);
+    updateDraft({
+      models: draft.models.map((model) =>
+        model.uid === uid ? { ...model, ...patch } : model,
+      ),
+    });
+  };
+
+  const removeModelRow = (uid: string) => {
+    clearModelValidation(uid);
+    updateDraft({ models: draft.models.filter((model) => model.uid !== uid) });
   };
 
   const buildProviderConfig = (): ProviderConfig => ({
     id: draft.id,
     providerType: draft.providerType,
     displayName: draft.name,
-    models: draft.models,
+    executionMode: draft.executionMode,
+    models: draft.models.map((model) => {
+      const modelId = model.id.trim();
+      const modelName = model.name.trim();
+
+      return {
+        uid: model.uid,
+        id: modelId,
+        name: modelName || modelId,
+        enabled: model.enabled,
+        capabilities: model.capabilities,
+      };
+    }),
     connection: {
       baseUrl: draft.baseUrl || undefined,
       protocol: draft.protocol,
@@ -159,6 +229,47 @@ const EditProviderView: React.FC<EditProviderViewProps> = ({
     },
   });
 
+  const buildFetchProviderConfig = (): ProviderConfig => ({
+    ...buildProviderConfig(),
+    models: draft.models
+      .filter((model) => model.id.trim())
+      .map((model) => ({
+        uid: model.uid,
+        id: model.id.trim(),
+        name: model.name.trim() || model.id.trim(),
+        enabled: model.enabled,
+        capabilities: model.capabilities,
+      })),
+  });
+
+  const validateModelRows = () => {
+    const nextErrors: Record<string, string> = {};
+
+    draft.models.forEach((model) => {
+      const modelId = model.id.trim();
+      const modelName = model.name.trim();
+
+      if (!modelId && !modelName) {
+        nextErrors[model.uid] = t('settings.form.modelRowEmpty');
+        return;
+      }
+
+      if (!modelId) {
+        nextErrors[model.uid] = t('settings.form.modelIdRequired');
+      }
+    });
+
+    setModelRowErrors(nextErrors);
+
+    if (Object.keys(nextErrors).length > 0) {
+      setModelsValidationMessage(t('settings.form.fixModelRows'));
+      return false;
+    }
+
+    setModelsValidationMessage(null);
+    return true;
+  };
+
   const fetchModels = async () => {
     if (!draft.baseUrl || !draft.apiKey) {
       return;
@@ -166,40 +277,25 @@ const EditProviderView: React.FC<EditProviderViewProps> = ({
 
     setIsFetchingModels(true);
     setFetchError(null);
-    setFetchedModels([]);
 
     try {
-      const response = await fetch('/api/providers/models', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          provider: buildProviderConfig(),
-        } satisfies FetchProviderModelsPayload),
-      });
-
-      if (!response.ok) {
-        const body = (await response.json().catch(() => null)) as { error?: string } | null;
-        throw new Error(body?.error || `HTTP ${response.status}`);
-      }
-
-      const data = (await response.json()) as { data?: Array<{ id: string }> };
+      const data = await fetchProviderModelsForExecutionMode(
+        buildFetchProviderConfig(),
+        globalExecutionMode,
+      );
       if (!Array.isArray(data.data)) {
         throw new Error(t('settings.form.invalidResponse'));
       }
 
-      const models = data.data.map((model) => ({
-        id: model.id,
-        name: model.id,
-        enabled: true,
-      }));
+      const models = buildSelectableFetchedModels(data.data, draft.models);
 
       if (models.length === 0) {
         setFetchError(t('settings.form.noModelsFoundFromApi'));
-      } else {
-        setFetchedModels(models);
+        return;
       }
+
+      setFetchedModelsSelection(models);
+      setIsFetchedModelsDialogOpen(true);
     } catch (error) {
       setFetchError(
         t('settings.form.fetchError', {
@@ -211,44 +307,41 @@ const EditProviderView: React.FC<EditProviderViewProps> = ({
     }
   };
 
-  const handleOpenModelModal = () => {
-    setIsModelModalOpen(true);
-    setSelectedFetchedModels([]);
-    setFetchedModels([]);
-    setFetchError(null);
-    void fetchModels();
+  const handleToggleFetchedModel = (modelId: string) => {
+    setFetchedModelsSelection((current) => toggleSelectableFetchedModel(current, modelId));
   };
 
-  const toggleSelectedModel = (modelId: string) => {
-    setSelectedFetchedModels((current) =>
-      current.includes(modelId)
-        ? current.filter((id) => id !== modelId)
-        : [...current, modelId],
-    );
+  const handleSelectAllNewFetchedModels = () => {
+    setFetchedModelsSelection((current) => selectAllNewFetchedModels(current));
   };
 
-  const toggleSelectAll = () => {
-    if (selectedFetchedModels.length === fetchedModels.length) {
-      setSelectedFetchedModels([]);
-      return;
-    }
-
-    setSelectedFetchedModels(fetchedModels.map((model) => model.id));
+  const handleCancelFetchedModelsDialog = () => {
+    setIsFetchedModelsDialogOpen(false);
+    setFetchedModelsSelection([]);
   };
 
-  const handleConfirmSelection = () => {
-    const modelsToAdd = fetchedModels.filter((model) => selectedFetchedModels.includes(model.id));
-    const newModels = modelsToAdd.filter(
-      (nextModel) => !draft.models.some((existing) => existing.id === nextModel.id),
-    );
-
-    updateDraft({ models: [...draft.models, ...newModels] });
-    setIsModelModalOpen(false);
+  const handleConfirmFetchedModelsDialog = () => {
+    clearModelValidation();
+    setDraft((current) => ({
+      ...current,
+      models: mergeSelectedFetchedModels(current.models, fetchedModelsSelection),
+    }));
+    setIsFetchedModelsDialogOpen(false);
+    setFetchedModelsSelection([]);
   };
+
+  const effectiveExecutionMode = resolveProviderExecutionMode(
+    { executionMode: draft.executionMode },
+    globalExecutionMode,
+  );
 
   const handleSave = async () => {
     if (!draft.name.trim()) {
       alert(t('settings.form.nameRequired'));
+      return;
+    }
+
+    if (!validateModelRows()) {
       return;
     }
 
@@ -264,6 +357,15 @@ const EditProviderView: React.FC<EditProviderViewProps> = ({
 
   return (
     <div className="flex flex-col h-full bg-background">
+      <FetchedModelsSelectionDialog
+        open={isFetchedModelsDialogOpen}
+        models={fetchedModelsSelection}
+        onToggle={handleToggleFetchedModel}
+        onSelectAllNew={handleSelectAllNewFetchedModels}
+        onCancel={handleCancelFetchedModelsDialog}
+        onConfirm={handleConfirmFetchedModelsDialog}
+      />
+
       <div className="flex items-center gap-3 px-4 sm:px-6 py-3 sm:py-4 border-b border-border">
         <Button variant="ghost" size="icon" onClick={onBack}>
           <Icon name="arrow_back" size={20} />
@@ -295,6 +397,31 @@ const EditProviderView: React.FC<EditProviderViewProps> = ({
             onChange={(event) => updateDraft({ name: event.target.value })}
             placeholder={t('settings.form.displayNamePlaceholder')}
           />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="providerExecutionMode">{t('settings.form.executionMode')}</Label>
+          <select
+            id="providerExecutionMode"
+            value={draft.executionMode}
+            onChange={(event) =>
+              updateDraft({ executionMode: event.target.value as ProviderExecutionMode })
+            }
+            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background"
+          >
+            <option value="inherit">{t('settings.form.executionModeInherit')}</option>
+            <option value="browser-direct">{t('settings.form.executionModeBrowserDirect')}</option>
+            <option value="server-proxy">{t('settings.form.executionModeServerProxy')}</option>
+          </select>
+          <p className="text-xs text-muted-foreground">{t('settings.form.executionModeHint')}</p>
+          <p className="text-xs text-muted-foreground">
+            {t('settings.form.executionModeResolved', {
+              mode:
+                effectiveExecutionMode === 'browser-direct'
+                  ? t('settings.executionMode.browserDirect')
+                  : t('settings.executionMode.serverProxy'),
+            })}
+          </p>
         </div>
 
         {draft.providerType !== 'openai' &&
@@ -428,84 +555,113 @@ const EditProviderView: React.FC<EditProviderViewProps> = ({
         <Separator />
 
         <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <Label>{t('settings.form.models')}</Label>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleOpenModelModal}
-              disabled={!draft.baseUrl || !draft.apiKey}
-              className="h-8 text-xs text-muted-foreground hover:text-primary"
-            >
-              <Icon name="download" size={16} className="mr-1" />
-              {t('settings.form.fetchModels')}
-            </Button>
-          </div>
-
-          <div className="bg-muted rounded-xl p-4 space-y-3">
-            <div className="flex flex-col sm:flex-row gap-2 sm:items-end">
-              <div className="flex-1 space-y-1">
-                <Label className="text-xs text-muted-foreground">
-                  {t('settings.form.modelId')}
-                </Label>
-                <Input
-                  type="text"
-                  value={newModelId}
-                  onChange={(event) => setNewModelId(event.target.value)}
-                  placeholder={t('settings.form.modelIdPlaceholder')}
-                  className="font-mono h-9"
-                />
-              </div>
-              <div className="flex-1 space-y-1">
-                <Label className="text-xs text-muted-foreground">
-                  {t('settings.form.displayName')}
-                </Label>
-                <Input
-                  type="text"
-                  value={newModelName}
-                  onChange={(event) => setNewModelName(event.target.value)}
-                  placeholder={t('settings.form.displayName')}
-                  className="h-9"
-                />
-              </div>
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="space-y-1">
+              <Label className="text-sm font-semibold text-foreground">
+                {t('settings.form.models')}
+              </Label>
+              <p className="text-xs text-muted-foreground">
+                {t('settings.form.modelActionsHint', {
+                  defaultValue: 'Add models manually or pull them in from the provider endpoint.',
+                })}
+              </p>
+            </div>
+            <div className="flex w-full sm:w-auto items-center gap-2">
               <Button
                 variant="outline"
                 size="sm"
-                onClick={handleAddModel}
-                disabled={!newModelId.trim()}
+                onClick={addModelRow}
+                className="h-8 flex-1 sm:flex-none rounded-md px-2.5 text-xs"
               >
+                <Icon name="add" size={16} />
                 {t('settings.form.addModel')}
               </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => void fetchModels()}
+                disabled={!draft.baseUrl || !draft.apiKey || isFetchingModels}
+                className="h-8 flex-1 sm:flex-none rounded-md px-2.5 text-xs text-muted-foreground hover:text-foreground"
+              >
+                <Icon
+                  name={isFetchingModels ? 'progress_activity' : 'download'}
+                  size={16}
+                  className={isFetchingModels ? 'animate-spin' : ''}
+                />
+                {t('settings.form.fetchModels')}
+              </Button>
             </div>
+          </div>
 
-            <div className="space-y-1 mt-2">
-              {draft.models.map((model, index) => (
+          <div className="bg-muted rounded-xl p-4 space-y-3">
+            {fetchError ? (
+              <div className="p-3 bg-destructive/10 text-destructive rounded-lg flex items-start gap-3">
+                <Icon name="error" size={18} className="mt-0.5 shrink-0" />
+                <p className="text-sm">{fetchError}</p>
+              </div>
+            ) : null}
+
+            {modelsValidationMessage ? (
+              <div className="p-3 bg-destructive/10 text-destructive rounded-lg text-sm">
+                {modelsValidationMessage}
+              </div>
+            ) : null}
+
+            <div className="space-y-3">
+              {draft.models.map((model) => (
                 <div
-                  key={model.id}
-                  className="flex items-center justify-between p-2 bg-background border border-border rounded-lg group"
+                  key={model.uid}
+                  className="rounded-lg border border-border bg-background p-3"
                 >
-                  <div className="flex flex-col">
-                    <span className="text-sm font-medium">{model.id}</span>
-                    {model.name !== model.id && (
-                      <span className="text-xs text-muted-foreground">{model.name}</span>
-                    )}
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-start">
+                    <div className="flex-1 space-y-1">
+                      <Label className="text-xs text-muted-foreground">
+                        {t('settings.form.modelId')}
+                      </Label>
+                      <Input
+                        type="text"
+                        value={model.id}
+                        onChange={(event) => updateModelRow(model.uid, { id: event.target.value })}
+                        placeholder={t('settings.form.modelIdPlaceholder')}
+                        className="font-mono h-9"
+                      />
+                    </div>
+                    <div className="flex-1 space-y-1">
+                      <Label className="text-xs text-muted-foreground">
+                        {t('settings.form.displayName')}
+                      </Label>
+                      <Input
+                        type="text"
+                        value={model.name}
+                        onChange={(event) => updateModelRow(model.uid, { name: event.target.value })}
+                        placeholder={t('settings.form.displayName')}
+                        className="h-9"
+                      />
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => removeModelRow(model.uid)}
+                      className="self-end size-9 text-muted-foreground hover:text-destructive"
+                      title={t('settings.form.removeModel')}
+                    >
+                      <Icon name="close" size={16} />
+                    </Button>
                   </div>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => removeModel(index)}
-                    className="opacity-100 sm:opacity-0 sm:group-hover:opacity-100 text-muted-foreground hover:text-destructive size-7"
-                  >
-                    <Icon name="close" size={16} />
-                  </Button>
+                  {modelRowErrors[model.uid] ? (
+                    <p className="mt-2 text-xs text-destructive">
+                      {modelRowErrors[model.uid]}
+                    </p>
+                  ) : null}
                 </div>
               ))}
-              {draft.models.length === 0 && (
-                <div className="text-center py-2 text-xs text-muted-foreground">
-                  {t('settings.form.noModelsAdded')}
-                </div>
-              )}
             </div>
+
+            {draft.models.length === 0 && (
+              <div className="text-center py-2 text-xs text-muted-foreground">
+                {t('settings.form.noModelsAdded')}
+              </div>
+            )}
           </div>
         </div>
 
@@ -515,97 +671,6 @@ const EditProviderView: React.FC<EditProviderViewProps> = ({
           </Button>
         </div>
       </div>
-
-      <Dialog open={isModelModalOpen} onOpenChange={setIsModelModalOpen}>
-        <DialogContent className="sm:max-w-[500px] max-h-[80vh] flex flex-col">
-          <DialogHeader>
-            <DialogTitle>{t('settings.form.selectModels')}</DialogTitle>
-            <DialogDescription>
-              {t(
-                'settings.form.selectModelsDescription',
-                'Select models to add to your provider configuration.',
-              )}
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className="flex-1 overflow-y-auto py-4">
-            {isFetchingModels ? (
-              <div className="flex flex-col items-center justify-center py-8 text-muted-foreground">
-                <Icon name="progress_activity" size={20} className="animate-spin mb-2" />
-                <p>{t('settings.form.fetching')}</p>
-              </div>
-            ) : fetchError ? (
-              <div className="p-4 bg-destructive/10 text-destructive rounded-lg flex items-start gap-3">
-                <Icon name="error" size={20} className="mt-0.5" />
-                <p className="text-sm">{fetchError}</p>
-              </div>
-            ) : fetchedModels.length > 0 ? (
-              <div className="space-y-1">
-                <div
-                  className="flex items-center space-x-3 p-2 hover:bg-muted/50 rounded-lg cursor-pointer border-b border-border mb-2 pb-2"
-                  onClick={toggleSelectAll}
-                >
-                  <input
-                    type="checkbox"
-                    checked={
-                      selectedFetchedModels.length === fetchedModels.length &&
-                      fetchedModels.length > 0
-                    }
-                    onChange={() => undefined}
-                    className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
-                  />
-                  <label className="text-sm font-bold leading-none cursor-pointer flex-1">
-                    {t('settings.form.selectAll')}
-                  </label>
-                </div>
-                {fetchedModels.map((model) => (
-                  <div
-                    key={model.id}
-                    className="flex items-center space-x-3 p-2 hover:bg-muted/50 rounded-lg cursor-pointer"
-                    onClick={() => toggleSelectedModel(model.id)}
-                  >
-                    <input
-                      type="checkbox"
-                      checked={selectedFetchedModels.includes(model.id)}
-                      onChange={() => undefined}
-                      className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
-                    />
-                    <label className="text-sm font-medium leading-none cursor-pointer flex-1">
-                      {model.id}
-                    </label>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-8 text-muted-foreground">
-                {t('settings.form.noModelsFoundFromApi')}
-              </div>
-            )}
-          </div>
-
-          <DialogFooter>
-            <div className="flex w-full justify-between items-center sm:justify-end gap-2">
-              <div className="text-xs text-muted-foreground sm:hidden">
-                {selectedFetchedModels.length > 0 &&
-                  t('settings.form.selectedCount', {
-                    count: selectedFetchedModels.length,
-                  })}
-              </div>
-              <div className="flex gap-2">
-                <Button variant="outline" onClick={() => setIsModelModalOpen(false)}>
-                  {t('settings.import.cancel')}
-                </Button>
-                <Button
-                  onClick={handleConfirmSelection}
-                  disabled={selectedFetchedModels.length === 0}
-                >
-                  {t('settings.form.addSelected')} ({selectedFetchedModels.length})
-                </Button>
-              </div>
-            </div>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 };

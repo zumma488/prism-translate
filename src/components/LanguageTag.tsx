@@ -35,6 +35,10 @@ const LanguageTag: React.FC<LanguageTagProps> = ({
     const { t } = useTranslation()
     const config = LANGUAGE_CONFIGS[language]
     const hasCustomModel = selectedModelIds.length > 0
+    const currentModelLabel =
+        selectedModelIds.length === 1
+            ? availableModels.find((m) => m.uniqueId === selectedModelIds[0])?.modelName || t('settings.providers.models.unknownModel')
+            : t('settings.providers.models.multiModelCount', { count: selectedModelIds.length })
 
     return (
         <div
@@ -76,9 +80,8 @@ const LanguageTag: React.FC<LanguageTagProps> = ({
                 <div className="language-tag__tooltip">
                     <div className="language-tag__tooltip-content">
                         {selectedModelIds.length === 1
-                            ? `Using: ${availableModels.find((m) => m.uniqueId === selectedModelIds[0])
-                                ?.modelName || 'Unknown'}`
-                            : `Using: ${selectedModelIds.length} models`}
+                            ? t('translation.input.modelTooltipSingle', { model: currentModelLabel })
+                            : t('translation.input.modelTooltipMulti', { count: selectedModelIds.length })}
                     </div>
                 </div>
             )}

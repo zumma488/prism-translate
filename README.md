@@ -15,8 +15,8 @@ Prism Translate is a multi-language, multi-model, multi-provider translation com
 - Compare multiple model outputs for the same source text.
 - Bind different model sets to different target languages.
 - Configure hosted providers and OpenAI-compatible endpoints.
-- Manage provider settings, model lists, defaults, import/export, and persistence from the UI.
-- Run translation through Next.js API handlers with server-side provider/model orchestration.
+- Manage provider settings, fetched model lists, defaults, language bindings, import/export, and execution mode from a routed settings center.
+- Run translation through either browser-direct execution or Next.js API-backed server proxy execution, with task-level progress and retries.
 - Use a responsive UI with built-in i18n support.
 
 ## Current Architecture
@@ -25,13 +25,15 @@ The current codebase is a hybrid of active runtime structure and ongoing documen
 
 - `app/`
   - Next.js App Router entrypoints.
-  - Owns route files, layout, global styles, and API route handlers such as `app/api/translate/stream/route.ts` and `app/api/providers/models/route.ts`.
+  - Owns route files, layout, global styles, and API route handlers such as `app/api/translate/stream/route.ts`, `app/api/translate/task/route.ts`, and `app/api/providers/models/route.ts`.
+  - Also owns the routed settings center under `app/settings/*`, including general, languages, providers, and about pages plus provider selection, create/edit, and model management routes.
 - `server/`
   - Server-side translation, provider proxy, model, and orchestration code used behind API boundaries.
 - `src/`
   - Client UI, feature modules, shared config, i18n, hooks, and reusable utilities.
   - `src/features/translation/` owns translation workflow orchestration.
   - `src/features/settings/` owns settings, persistence-facing state, and import/export flows.
+  - `src/features/settings/components/` backs the routed settings center shell and page clients rendered by `app/settings/*`.
   - `src/features/provider-management/` owns provider onboarding and provider-management rules.
 - `src/services/`
   - Shared infrastructure for config IO, legacy compatibility helpers, and LLM/provider access.
