@@ -13,6 +13,7 @@ This directory is suitable for:
 - dialogs
 - popovers
 - inputs
+- radio groups
 - tabs
 - sheets
 - other shadcn/ui-style primitives

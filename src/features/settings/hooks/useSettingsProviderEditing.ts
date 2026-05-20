@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import type { ProviderDefinition } from '@/config/models';
 import type { AppSettings, ProviderType, ProviderConfig } from '@/types';
 
@@ -31,17 +31,17 @@ export function useSettingsProviderEditing({
     resetProviderEditing();
   }, [isOpen]);
 
-  const startCreatingProvider = (type: ProviderType, providerDef?: ProviderDefinition) => {
+  const startCreatingProvider = useCallback((type: ProviderType, providerDef?: ProviderDefinition) => {
     setNewProviderType(type);
     setNewProviderDef(providerDef);
     setEditingProviderId(null);
-  };
+  }, []);
 
-  const startEditingProvider = (id: string) => {
+  const startEditingProvider = useCallback((id: string) => {
     setEditingProviderId(id);
     setNewProviderType(null);
     setNewProviderDef(undefined);
-  };
+  }, []);
 
   const saveProvider = (providerConfig: ProviderConfig) => {
     const providers = [...settings.providers];

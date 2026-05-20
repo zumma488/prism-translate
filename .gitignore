@@ -45,3 +45,6 @@ tsconfig.tsbuildinfo
 .trae/
 .agents/
 .agent/
+
+# Local product notes
+local-requirements/

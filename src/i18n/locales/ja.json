@@ -6,7 +6,8 @@
     "manage": "管理",
     "settings": "設定",
     "noModels": "有効なモデルがありません。",
-    "language": "言語"
+    "language": "言語",
+    "manageModels": "Manage Models"
   },
   "translation": {
     "input": {
@@ -21,7 +22,9 @@
       "translateHotkey": "翻訳 (Ctrl+Enter)",
       "selectLanguageWarning": "少なくとも1つのターゲット言語を選択してください",
       "cannotRemoveLanguage": "翻訳中は言語を削除できません",
-      "removeLanguage": "{{lang}} を削除"
+      "removeLanguage": "{{lang}} を削除",
+      "modelTooltipSingle": "Using: {{model}}",
+      "modelTooltipMulti": "Using: {{count}} models"
     },
     "output": {
       "emptyTitle": "翻訳結果がここに表示されます",
@@ -71,13 +74,19 @@
       "fetchModels": "/models から取得",
       "fetching": "モデルを取得中...",
       "selectModels": "モデルを選択",
-      "selectModelsDescription": "プロバイダー構成に追加するモデルを選択してください。",
+      "selectModelsDescription": "Review the fetched models and choose what to merge. Your current list will not change until you confirm.",
       "addSelected": "選択項目を追加",
       "selectAll": "すべて選択",
       "fetchError": "モデルの取得に失敗しました：{{error}}",
       "noModelsFoundFromApi": "API からモデルが見つかりませんでした。",
       "invalidResponse": "無効なレスポンス形式",
-      "selectedCount": "{{count}} 件選択中"
+      "selectedCount": "{{count}} 件選択中",
+      "selectAllNew": "Select all new",
+      "existingFetchedModel": "Existing",
+      "newFetchedModel": "New",
+      "replaceFetchedModel": "Replace",
+      "searchFetchedModels": "Filter fetched models...",
+      "noFetchedModelsMatchSearch": "No fetched models match that search."
     },
     "provider": {
       "searchPlaceholder": "プロバイダーを検索...",
@@ -102,6 +111,101 @@
       "importFailed": "インポートに失敗しました",
       "mergeSuccess": "マージ完了：{{new}} 個の新しいプロバイダーを追加、{{merged}} 個の既存プロバイダーのモデルをマージしました。",
       "overrideSuccess": "上書き完了：{{count}} 個のプロバイダーをインポートしました。"
+    },
+    "centerTitle": "Settings Center",
+    "centerDescription": "Keep translation work focused in the workspace and move provider, model, execution, and trust-boundary decisions into one durable place.",
+    "backToWorkspace": "Back to workspace",
+    "nav": {
+      "general": "General",
+      "languages": "Languages",
+      "providers": "Providers",
+      "about": "About & Security"
+    },
+    "general": {
+      "eyebrow": "Workspace behavior",
+      "title": "General settings",
+      "description": "Choose the default request path for translation tasks and keep system-wide behavior consistent across providers.",
+      "badge": "Global defaults",
+      "providerOverrideTitle": "Provider overrides still live with the provider",
+      "providerOverrideDescription": "Execution mode can be overridden per provider inside the edit flow, so global defaults stay predictable without blocking edge cases.",
+      "workspaceScopeTitle": "Current-task controls stay in the translator",
+      "workspaceScopeDescription": "Language selection and in-flight model decisions stay in the main translation workspace. This page only covers durable workspace defaults."
+    },
+    "languages": {
+      "eyebrow": "Language preferences",
+      "title": "Languages and translation preferences",
+      "description": "Keep language-aware defaults understandable without moving task-time choices away from the translation workspace.",
+      "badge": "Navigation page",
+      "action": "Open model bindings",
+      "currentTaskTitle": "Current translation targets stay on the main page",
+      "currentTaskDescription": "Target languages for the task you are actively translating are still chosen in the translation workspace where the task context is visible.",
+      "defaultsTitle": "Global default target languages are not part of this release",
+      "defaultsDescription": "This settings center does not introduce a new persisted default target-language field. It keeps the architecture honest instead of showing fake settings.",
+      "bindingTitle": "Language-to-model bindings belong to model management",
+      "bindingDescription": "If a language should consistently prefer a specific model set, configure it in Provider model management where available models and providers are visible together.",
+      "bindingAction": "Go to Provider model management"
+    },
+    "providers": {
+      "eyebrow": "Provider assets",
+      "title": "Providers",
+      "description": "Manage credentials, base URLs, protocol mode, import/export, and the provider catalog that powers the whole translation workspace.",
+      "summary": "{{count}} providers / {{models}} enabled models",
+      "listTitle": "Provider inventory",
+      "listDescription": "Providers and their models are treated as one continuous configuration asset. Edit providers here, then refine model availability in the model page.",
+      "modelCount": "{{count}} models",
+      "enabledCount": "{{count}} enabled",
+      "executionModeOverride": "Custom execution mode",
+      "executionModeInherited": "Inherits global execution mode",
+      "emptyTitle": "No providers configured yet",
+      "emptyDescription": "Add a provider first so the workspace can discover models, set defaults, and execute translations.",
+      "emptySearchTitle": "No providers match that search",
+      "emptySearchDescription": "Try another provider or model keyword, or clear the search to review the full provider inventory.",
+      "models": {
+        "eyebrow": "Provider model management",
+        "title": "Models",
+        "description": "Control which models are available, which model is the workspace default, and how specific languages bind to model sets.",
+        "breadcrumb": "Models",
+        "defaultBadge": "Default: {{name}}",
+        "noDefaultBadge": "No default model",
+        "backToProviders": "Back to Providers",
+        "listTitle": "Model availability",
+        "listDescription": "The model page stays flat for fast scanning, while still preserving the provider relationship on every row.",
+        "defaultLabel": "Global default",
+        "boundLabel": "{{language}} binding",
+        "setDefault": "Set default",
+        "toggleBinding": "Toggle binding",
+        "editProvider": "Edit Provider",
+        "enabled": "Enabled",
+        "emptyTitle": "No providers yet, so there are no models to manage",
+        "emptyDescription": "Create a provider first. Once a provider exists, you can enable models, set a default, and create language-specific bindings here.",
+        "emptyAction": "Add Provider",
+        "emptySearchTitle": "No models match that search",
+        "emptySearchDescription": "Try another model name, provider name, or clear the search to see the full model inventory.",
+        "bindingTitle": "Language model bindings",
+        "bindingDescription": "Choose a language to review or override its model set. If you leave a language empty, translation falls back to the global default model.",
+        "bindingLanguage": "Target language",
+        "bindingSummaryTitle": "{{language}} model routing",
+        "bindingSummaryCustom": "{{count}} model binding(s) selected for this language.",
+        "bindingSummaryFallback": "No custom binding is set. This language will use the global default model.",
+        "bindingHint": "Bindings here affect future translation tasks across the workspace. Use the language-tag popover in the translator for one-off task-time overrides.",
+        "jumpAction": "Open Provider model management",
+        "unknownModel": "Unknown model",
+        "multiModelCount": "{{count}} models"
+      }
+    },
+    "about": {
+      "eyebrow": "Trust boundaries",
+      "title": "About and security notes",
+      "description": "This product keeps credentials in the browser for user-managed configuration flows. These notes explain what that means in practice.",
+      "badge": "Read before sharing configs",
+      "localStorageTitle": "Browser storage is convenient, not enterprise secret storage",
+      "localStorageDescription": "Provider credentials are currently stored on the browser side for user-managed settings flows. Treat the browser environment as part of your trust boundary.",
+      "exportTitle": "Exported .prism files are sensitive",
+      "exportDescription": "Exported configuration files can include provider credentials, model lists, and default behavior. Handle them like secrets and avoid sharing them casually.",
+      "browserDirectTitle": "Browser direct keeps requests in the browser context",
+      "browserDirectDescription": "When browser direct mode is used, API keys and request traffic remain in the browser execution context and go straight to the upstream provider endpoint.",
+      "serverProxyTitle": "Server proxy changes the request path, not the overall trust model",
+      "serverProxyDescription": "Server proxy sends requests through the app server before forwarding upstream, but deployment operators remain inside the trust boundary for the overall system."
     }
   },
   "errors": {

@@ -116,7 +116,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, currentS
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-2xl h-full sm:h-[600px] flex flex-col p-0 gap-0 overflow-hidden bg-white dark:bg-[#1a2632] rounded-none sm:rounded-lg">
+      <DialogContent className="flex h-full gap-0 overflow-hidden rounded-none p-0 sm:h-[600px] sm:max-w-2xl sm:rounded-2xl">
         <DialogTitle className="sr-only">
           {view === 'manage' && t('settings.manageModels')}
           {view === 'connect' && t('settings.connectProvider')}
@@ -157,6 +157,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, currentS
         {view === 'edit' && (
           <EditProviderView
             initialConfig={getInitialEditConfig()}
+            globalExecutionMode={localSettings.executionMode}
             existingIds={localSettings.providers.map(p => p.id)}
             onSave={handleSaveProvider}
             onBack={handleBack}
@@ -166,8 +167,8 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, currentS
 
         {/* Import Conflict Confirmation Dialog */}
         {importConflict && (
-          <div className="absolute inset-0 bg-black/50 flex items-center justify-center z-50 rounded-lg">
-            <div className="bg-background rounded-xl p-6 mx-4 max-w-md w-full shadow-2xl border border-border">
+          <div className="absolute inset-0 z-50 flex items-center justify-center rounded-2xl bg-foreground/35 backdrop-blur-[2px]">
+            <div className="mx-4 w-full max-w-md rounded-2xl border border-border/70 bg-popover/95 p-6 shadow-[var(--shadow-soft)] backdrop-blur">
               <div className="flex items-center gap-2 mb-3">
                 <Icon name="warning" size={20} className="text-amber-500" />
                 <h3 className="text-lg font-semibold text-foreground">{t('settings.import.conflictTitle')}</h3>
@@ -175,7 +176,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, currentS
               <p className="text-sm text-muted-foreground mb-2">
                 {t('settings.import.conflictMessage')}
               </p>
-              <div className="bg-muted/50 rounded-lg p-3 mb-4 max-h-24 overflow-y-auto">
+              <div className="mb-4 max-h-24 overflow-y-auto rounded-xl border border-border/60 bg-muted/50 p-3">
                 {importConflict.conflictNames.map((name, i) => (
                   <div key={i} className="text-sm font-medium text-foreground">
                     • {name}
@@ -206,7 +207,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, currentS
 
         {/* Toast Notification */}
         {toastMessage && (
-          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-foreground text-background px-4 py-2 rounded-lg text-sm shadow-lg animate-in fade-in slide-in-from-bottom-2 z-50">
+          <div className="animate-in fade-in slide-in-from-bottom-2 absolute bottom-4 left-1/2 z-50 -translate-x-1/2 rounded-full bg-foreground px-4 py-2 text-sm text-background shadow-[var(--shadow-soft)]">
             {toastMessage}
           </div>
         )}

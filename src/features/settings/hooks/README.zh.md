@@ -12,8 +12,8 @@
 - `useAppSettings`
   - settings 加载
   - 持久化触发
-  - settings modal 状态
   - active model 选择
+  - active model 规范化
   - language-model 绑定更新
 - `useSettingsImportExport`
   - 导入导出流程

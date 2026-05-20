@@ -1,6 +1,6 @@
 {
   "name": "prism-translate",
-  "version": "0.2.2",
+  "version": "0.3.0",
   "description": "Multi-language, multi-model, multi-provider AI translation comparison workspace built with Next.js, React, and TypeScript.",
   "author": "zumma488",
   "license": "MIT",

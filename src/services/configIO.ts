@@ -1,10 +1,11 @@
 import type { AppSettings, ProviderConfig } from '@/types';
-import { validateProviders } from '@/services/providerConfigValidation';
+import { isExecutionMode, validateProviders } from '@/services/providerConfigValidation';
+import { normalizeProviders, normalizeSettingsProviders } from '@/services/modelIdentity';
 
 const FILE_EXTENSION = '.prism';
 
 export async function exportConfig(settings: AppSettings): Promise<void> {
-  const json = JSON.stringify(settings, null, 2);
+  const json = JSON.stringify(normalizeSettingsProviders(settings), null, 2);
   const date = new Date().toISOString().slice(0, 10);
   const filename = `prism-config-${date}${FILE_EXTENSION}`;
 
@@ -37,12 +38,17 @@ function parseImportedSettings(text: string): ImportResult {
     throw new Error('Invalid configuration format.');
   }
 
+  const providers = normalizeProviders(parsed.providers);
+
   return {
     wasEncrypted: false,
     settings: {
       activeModelKey: typeof parsed.activeModelKey === 'string' ? parsed.activeModelKey : '',
       languageModels: parsed.languageModels || {},
-      providers: parsed.providers,
+      providers,
+      executionMode: isExecutionMode(parsed.executionMode)
+        ? parsed.executionMode
+        : 'browser-direct',
     },
   };
 }
@@ -87,9 +93,11 @@ export function detectConflicts(
 }
 
 export function mergeSettings(existing: AppSettings, imported: AppSettings): AppSettings {
-  const { newProviders, conflicts } = detectConflicts(existing, imported);
+  const normalizedExisting = normalizeSettingsProviders(existing);
+  const normalizedImported = normalizeSettingsProviders(imported);
+  const { newProviders, conflicts } = detectConflicts(normalizedExisting, normalizedImported);
 
-  const mergedProviders = existing.providers.map((existingProvider) => {
+  const mergedProviders = normalizedExisting.providers.map((existingProvider) => {
     const matches = conflicts.filter(
       (provider) =>
         provider.providerType === existingProvider.providerType &&
@@ -100,10 +108,10 @@ export function mergeSettings(existing: AppSettings, imported: AppSettings): App
       return existingProvider;
     }
 
-    const existingModelIds = new Set(existingProvider.models.map((model) => model.id));
+    const existingModelUids = new Set(existingProvider.models.map((model) => model.uid || model.id));
     const mergedModels = matches
       .flatMap((provider) => provider.models)
-      .filter((model) => !existingModelIds.has(model.id));
+      .filter((model) => !existingModelUids.has(model.uid || model.id));
 
     if (mergedModels.length === 0) {
       return existingProvider;
@@ -116,11 +124,11 @@ export function mergeSettings(existing: AppSettings, imported: AppSettings): App
   });
 
   return {
-    ...existing,
+    ...normalizedExisting,
     providers: [...mergedProviders, ...newProviders],
   };
 }
 
 export function overrideSettings(_existing: AppSettings, imported: AppSettings): AppSettings {
-  return { ...imported };
+  return normalizeSettingsProviders({ ...imported });
 }

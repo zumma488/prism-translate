@@ -2,6 +2,7 @@
 
 import '@/i18n';
 import { TooltipProvider } from '@/components/ui/tooltip';
+import { AppSettingsProvider } from '@/features/settings/hooks/useAppSettings';
 import { initI18n } from '@/i18n';
 
 export function AppProviders({
@@ -13,5 +14,9 @@ export function AppProviders({
 }) {
   initI18n(initialLanguage);
 
-  return <TooltipProvider>{children}</TooltipProvider>;
+  return (
+    <TooltipProvider>
+      <AppSettingsProvider>{children}</AppSettingsProvider>
+    </TooltipProvider>
+  );
 }

@@ -13,6 +13,8 @@ This directory currently owns:
 - provider model creation helpers
 - `safeFetch`-style request guarding
 - configuration import/export support
+- provider execution-mode resolution
+- stable provider/model identity normalization
 - legacy compatibility paths for older configuration formats
 
 ## Out Of Scope
@@ -27,9 +29,11 @@ This directory should not directly own:
 Key files:
 - `configIO.ts`
 - `crypto.ts`
+- `executionMode.ts`
 - `llmService/index.ts`
 - `llmService/providers.ts`
 - `llmService/safeFetch.ts`
+- `modelIdentity.ts`
 
 ## Adjacent Modules
 

@@ -13,6 +13,14 @@ Current files include:
   - settings migration
   - persistence strategy
   - `activeModelKey` validation and fallback
+  - execution-mode and stable model identity normalization
+- `fetchProviderModels.ts`
+  - execution-mode-aware provider model discovery
+  - browser-direct and proxy model-fetch coordination
+- `providerFetchedModels.ts`
+  - fetched-model deduplication
+  - selectable model-state shaping
+  - merging selected fetched models into persisted provider models
 
 This directory is also the intended home for:
 - settings merge rules

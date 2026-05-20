@@ -13,7 +13,9 @@
 - 目标语言选择与持久化协同
 - 语言到模型绑定关系解析
 - 翻译任务创建
-- 翻译执行编排
+- 任务视图状态的创建与排序
+- 感知执行模式的翻译执行编排
+- 在一次翻译完成后新增目标语言时的增量翻译
 - 结果分组、排序与比较展示支持
 
 ## 非职责范围
@@ -32,6 +34,7 @@
 - `src/features/translation/components/`
 - `src/features/translation/hooks/`
 - `src/features/translation/services/`
+- `app/api/translate/task/route.ts`
 - `src/components/TranslationInput.tsx`
 - `src/App.tsx`
 - `src/types.ts`

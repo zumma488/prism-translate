@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import Link from 'next/link'
 import { ProviderConfig } from '../types'
 import {
     Popover,
@@ -15,6 +16,7 @@ import {
     CommandSeparator,
 } from '@/components/ui/command'
 import { Button } from '@/components/ui/button'
+import { useTranslation } from 'react-i18next'
 import { cn } from '@/lib/utils'
 import { Icon } from '@/components/ui/icon'
 
@@ -42,6 +44,7 @@ const ModelSelectorPopover: React.FC<ModelSelectorPopoverProps> = ({
     onSelectionChange,
     trigger,
 }) => {
+    const { t } = useTranslation()
     const [isOpen, setIsOpen] = useState(false)
 
     // Group models by provider
@@ -148,6 +151,20 @@ const ModelSelectorPopover: React.FC<ModelSelectorPopoverProps> = ({
                                 })}
                             </CommandGroup>
                         ))}
+                        <CommandSeparator />
+                        <div className="p-2">
+                            <Button
+                                asChild
+                                variant="outline"
+                                size="sm"
+                                className="w-full justify-center rounded-xl"
+                            >
+                                <Link href="/settings/providers/models">
+                                    <Icon name="hub" size={16} />
+                                    {t('settings.providers.models.jumpAction')}
+                                </Link>
+                            </Button>
+                        </div>
                     </CommandList>
                 </Command>
             </PopoverContent>
